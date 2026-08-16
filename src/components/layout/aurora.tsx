@@ -1,46 +1,46 @@
 import type { CSSProperties } from "react";
+import { cn } from "@/lib/utils/cn";
 
 /**
- * Ambient hero backdrop — three slow, blurred colour fields drifting behind the
- * masthead. Adapted from the React Bits "Aurora" idea, rebuilt as pure CSS so it
- * costs no JavaScript, composites on the GPU, and stops dead under
- * `prefers-reduced-motion` (handled globally in `globals.css`).
+ * Ambient backdrop — slow, blurred colour fields drifting behind the content.
+ * Adapted from the React Bits "Aurora" idea, rebuilt as pure CSS so it costs no
+ * JavaScript, composites on the GPU, and stops dead under `prefers-reduced-motion`
+ * (handled globally in `globals.css`).
  */
-const BLOBS: Array<{ color: string; className: string; duration: string; reverse?: boolean }> = [
-  {
-    color: "var(--type-fire)",
-    className: "-left-24 -top-32 size-[26rem]",
-    duration: "18s",
-  },
-  {
-    color: "var(--type-water)",
-    className: "-right-20 -top-24 size-[24rem]",
-    duration: "22s",
-    reverse: true,
-  },
-  {
-    color: "var(--type-electric)",
-    className: "left-1/2 top-8 size-[22rem] -translate-x-1/2",
-    duration: "26s",
-  },
-];
+const PLACEMENTS = [
+  { className: "-left-24 -top-32 size-[30rem]", duration: "18s", reverse: false },
+  { className: "-right-20 -top-24 size-[28rem]", duration: "22s", reverse: true },
+  { className: "left-1/3 top-16 size-[26rem]", duration: "26s", reverse: false },
+] as const;
 
-export function Aurora() {
+interface AuroraProps {
+  /** CSS colours, one per blob. Falls back to the house palette. */
+  colors?: string[];
+  className?: string;
+}
+
+const DEFAULT_COLORS = ["var(--type-fire)", "var(--type-water)", "var(--type-electric)"];
+
+export function Aurora({ colors = DEFAULT_COLORS, className }: AuroraProps) {
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-      {BLOBS.map((blob) => (
+    <div
+      aria-hidden
+      className={cn("pointer-events-none absolute inset-0 -z-10 overflow-hidden", className)}
+    >
+      {PLACEMENTS.map((placement, index) => (
         <div
-          key={blob.color}
-          className={`aurora-blob ${blob.className}`}
+          key={placement.className}
+          className={`aurora-blob ${placement.className}`}
           style={
             {
-              "--aurora-color": blob.color,
-              animation: `aurora-drift ${blob.duration} ease-in-out infinite${blob.reverse ? " reverse" : ""}`,
+              "--aurora-color": colors[index % colors.length],
+              animation: `aurora-drift ${placement.duration} ease-in-out infinite${
+                placement.reverse ? " reverse" : ""
+              }`,
             } as CSSProperties
           }
         />
       ))}
-      <div className="absolute inset-x-0 bottom-0 h-24 bg-linear-to-b from-transparent to-canvas" />
     </div>
   );
 }

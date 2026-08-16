@@ -1,26 +1,32 @@
 # Pokédex Explorer
 
 A production-grade Pokédex built on the free [PokéAPI](https://pokeapi.co). Search, filter, sort
-and compare all 1,025 Pokémon — with a virtualised grid, shared-element transitions, full keyboard
-support and a light/dark design system.
+and compare all 1,025 Pokémon — with a cinematic spotlight view, a virtualised grid, shared-element
+transitions, full keyboard support and a light/dark design system.
 
-![Home, light theme](docs/screenshots/01-home-light.png)
+![Spotlight, light theme](docs/screenshots/01-spotlight-light.png)
 
 ---
 
 ## Features
 
-**Browsing**
+**Two ways to browse, one toggle apart**
 
-- Virtualised card grid over the full National Pokédex — 1,025 entries scroll at 60fps because only
-  the rows near the viewport exist in the DOM.
-- Each card carries its dex number, official artwork, name and types, on a background washed with
-  its primary type's colour.
-- **Infinite scroll** by default, in pages of 24, via `react-infinite-scroll-component`. Because the
-  grid is virtualised the two compose cleanly: after scrolling 212 Pokémon into the feed, only ~44
+- **Spotlight** (default) — one Pokémon presented full-bleed: oversized display type, key stats, and
+  an ambient backdrop drawn from its own type colours, with a horizontally virtualised character-select
+  rail underneath. Arrow keys walk the dex; the backdrop, artwork and name all crossfade in step.
+- **Grid** — the classic card layout: dex number, artwork, name and types on a surface washed with
+  the primary type's colour, virtualised so all 1,025 entries scroll at 60fps.
+- The choice lives in the URL (`?view=grid`), so a shared link opens the way you left it.
+
+**Paging**
+
+- **Infinite scroll** by default, in pages of 24, via `react-infinite-scroll-component`. Because both
+  views are virtualised the two compose cleanly: after scrolling 212 Pokémon into the feed, only ~44
   cards exist in the DOM.
 - A **Load More** button (`Load 24 more · 809 left`) is one toggle away for anyone who would rather
   control when the next batch arrives — an endlessly growing page makes the footer unreachable.
+- In Spotlight the rail pulls the next page in as the selection approaches its right edge.
 
 **Search**
 
@@ -58,11 +64,10 @@ support and a light/dark design system.
 
 | | |
 |---|---|
-| ![Dark theme](docs/screenshots/02-home-dark.png) | ![Filter and sort](docs/screenshots/03-filter-sort.png) |
-| ![Detail modal](docs/screenshots/04-detail-modal.png) | ![Compare](docs/screenshots/08-compare.png) |
-| ![Detail page](docs/screenshots/05-detail-page.png) | ![Empty state](docs/screenshots/07-empty.png) |
-
-<p align="center"><img src="docs/screenshots/06-mobile.png" width="320" alt="Mobile layout"></p>
+| ![Spotlight, dark theme](docs/screenshots/02-spotlight-dark.png) | ![Spotlight filtered to Dragon](docs/screenshots/03-spotlight-filtered.png) |
+| ![Grid view, filtered and sorted](docs/screenshots/04-grid-view.png) | ![Detail modal](docs/screenshots/05-detail-modal.png) |
+| ![Detail page](docs/screenshots/06-detail-page.png) | ![Compare](docs/screenshots/09-compare.png) |
+| ![Empty state](docs/screenshots/08-empty.png) | <img src="docs/screenshots/07-mobile.png" width="300" alt="Mobile spotlight"> |
 
 ---
 
@@ -138,12 +143,14 @@ src/
 │
 ├── components/
 │   ├── ui/                       # button, skeleton, tooltip, responsive-modal
-│   ├── layout/                   # header, theme toggle, aurora
+│   ├── layout/                   # header, theme provider + toggle, aurora
+│   ├── motion/                   # split-text
 │   ├── pokemon/                  # card, grid, detail, stat bar, type chip, skeletons
 │   └── states/                   # empty + error screens
 │
 ├── features/                     # vertical slices
-│   ├── explorer/                 # page composition, load-more
+│   ├── explorer/                 # page composition, view toggle, load-more
+│   ├── stage/                    # spotlight: backdrop, featured panel, rail
 │   ├── search/  filters/  compare/
 │
 ├── hooks/                        # feed, detail, URL params, column count, keyboard nav
@@ -217,6 +224,22 @@ No pre-paint script, nothing mutating the DOM behind React's back, nothing to su
 across all four combinations (system/light, system/dark, forced-dark on a light OS, forced-light on
 a dark OS) with zero console warnings. The one cost is that reading a cookie opts the root layout
 into dynamic rendering — acceptable here, since the shell fetches nothing on the server anyway.
+
+**Motion's inline styles quietly beat Tailwind's classes.** Two bugs in the spotlight had the same
+root cause. The giant ghosted dex number behind the artwork rendered at full opacity instead of 5%,
+and it refused to stay vertically centred. Both were utilities losing to Motion: `animate={{ opacity:
+1 }}` writes an inline `opacity`, which overrides `opacity-[0.045]`, and animating `x` writes an
+inline `transform`, which replaces `-translate-y-1/2` wholesale. The rule that falls out is worth
+keeping: **never style an animated property with a class.** Transparency moved into the colour
+(`text-ink/5`) and centring moved onto a non-animated wrapper.
+
+**A grid that centred its items but not itself.** The spotlight's two columns sat pinned to the top
+of the stage with dead space below. `items-center` was set, but that centres each item *within* its
+row track — and the implicit row had been sized to its content. Centring the track inside the
+container is `align-content`, i.e. `content-center`. Related: the rail was initially positioned with
+`min-h-[calc(100svh-4rem)]`, which pushed it below the fold as soon as the toolbar wrapped to two
+rows. Letting flexbox size it (`flex-1`) removed the hardcoded viewport arithmetic and the whole
+class of breakpoint-specific bugs that come with it.
 
 **A scroll-anchoring fight.** The virtualised grid oscillated: scroll position and document height
 flipped between two values every frame. Chrome's scroll anchoring was choosing a card row as its

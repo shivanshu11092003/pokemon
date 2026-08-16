@@ -6,11 +6,15 @@ import { parseSortKey, type SortKey } from "@/lib/pokemon/sort";
 import { parseTypeName } from "@/lib/pokemon/type-meta";
 import type { PokemonTypeName } from "@/types/pokemon";
 
+export const EXPLORER_VIEWS = ["stage", "grid"] as const;
+export type ExplorerView = (typeof EXPLORER_VIEWS)[number];
+
 export interface ExplorerParams {
   query: string;
   types: PokemonTypeName[];
   sort: SortKey;
   favoritesOnly: boolean;
+  view: ExplorerView;
 }
 
 export interface ExplorerParamsApi extends ExplorerParams {
@@ -22,6 +26,7 @@ export interface ExplorerParamsApi extends ExplorerParams {
   clearTypes: () => void;
   setSort: (sort: SortKey) => void;
   setFavoritesOnly: (value: boolean) => void;
+  setView: (view: ExplorerView) => void;
   clearAll: () => void;
 }
 
@@ -33,6 +38,7 @@ export function readExplorerParams(params: URLSearchParams): ExplorerParams {
       .filter((type): type is PokemonTypeName => type !== null),
     sort: parseSortKey(params.get("sort")),
     favoritesOnly: params.get("fav") === "1",
+    view: params.get("view") === "grid" ? "grid" : "stage",
   };
 }
 
@@ -42,6 +48,8 @@ function serialise(params: ExplorerParams): string {
   if (params.types.length > 0) next.set("type", params.types.join(","));
   if (params.sort !== "id") next.set("sort", params.sort);
   if (params.favoritesOnly) next.set("fav", "1");
+  // Spotlight is the default, so only the grid needs to be spelled out.
+  if (params.view === "grid") next.set("view", "grid");
   return next.toString();
 }
 
@@ -91,9 +99,21 @@ export function useExplorerParams(): ExplorerParamsApi {
     [commit, current],
   );
 
+  const setView = useCallback(
+    (view: ExplorerView) => commit({ ...current, view }),
+    [commit, current],
+  );
+
   const clearAll = useCallback(
-    () => commit({ query: "", types: [], sort: current.sort, favoritesOnly: false }),
-    [commit, current.sort],
+    () =>
+      commit({
+        query: "",
+        types: [],
+        sort: current.sort,
+        favoritesOnly: false,
+        view: current.view,
+      }),
+    [commit, current.sort, current.view],
   );
 
   const searchString = useMemo(() => serialise(current), [current]);
@@ -107,6 +127,7 @@ export function useExplorerParams(): ExplorerParamsApi {
     clearTypes,
     setSort,
     setFavoritesOnly,
+    setView,
     clearAll,
   };
 }
