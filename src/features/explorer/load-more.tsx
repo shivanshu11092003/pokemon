@@ -15,6 +15,11 @@ interface LoadMoreProps {
   onAutoLoadChange: (value: boolean) => void;
 }
 
+/**
+ * Infinite scroll is the default. The manual button is kept as an opt-out —
+ * some people want to control when a thousand more cards arrive, and a page
+ * that never stops growing is hostile to anyone trying to reach the footer.
+ */
 export function LoadMore({
   hasMore,
   remaining,
@@ -23,20 +28,16 @@ export function LoadMore({
   onLoadMore,
   onAutoLoadChange,
 }: LoadMoreProps) {
-  if (!hasMore) {
-    return (
-      <p className="py-10 text-center text-sm text-ink-faint">
-        That’s all {formatCount(total)} Pokémon.
-      </p>
-    );
-  }
-
   const nextBatch = Math.min(PAGE_SIZE, remaining);
 
   return (
     <div className="flex flex-col items-center gap-4 py-10">
-      {!autoLoad && (
-        <Button variant="primary" size="lg" onClick={onLoadMore} className="min-w-[15rem]">
+      {!hasMore && (
+        <p className="text-sm text-ink-faint">That’s all {formatCount(total)} Pokémon.</p>
+      )}
+
+      {hasMore && !autoLoad && (
+        <Button variant="primary" size="lg" onClick={onLoadMore} className="min-w-60">
           Load {nextBatch} more
           <span className="text-brand-ink/70">·</span>
           <span className="tabular font-normal">{formatCount(remaining)} left</span>

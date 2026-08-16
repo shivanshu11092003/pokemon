@@ -20,12 +20,16 @@ interface UiState {
   setAutoLoad: (value: boolean) => void;
 }
 
+/** The slice that actually reaches localStorage — see `partialize` below. */
+type PersistedUiState = Pick<UiState, "favorites" | "compare" | "autoLoad">;
+
 export const useUiStore = create<UiState>()(
   persist(
     (set) => ({
       favorites: [],
       compare: [],
-      autoLoad: false,
+      /** Infinite scroll is the default; the Load More button is the opt-out. */
+      autoLoad: true,
 
       toggleFavorite: (id) =>
         set((state) => ({
@@ -49,7 +53,18 @@ export const useUiStore = create<UiState>()(
     }),
     {
       name: "pokedex-explorer",
-      version: 1,
+      version: 2,
+      // v1 shipped with the Load More button as the default. Drop the stored
+      // value on upgrade so returning visitors get infinite scroll too; their
+      // favourites and comparison slate carry over untouched.
+      migrate: (persisted, version) => {
+        const state = (persisted ?? {}) as Partial<PersistedUiState>;
+        return {
+          favorites: state.favorites ?? [],
+          compare: state.compare ?? [],
+          autoLoad: version < 2 ? true : (state.autoLoad ?? true),
+        };
+      },
       partialize: (state) => ({
         favorites: state.favorites,
         compare: state.compare,

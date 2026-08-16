@@ -16,8 +16,11 @@ support and a light/dark design system.
   the rows near the viewport exist in the DOM.
 - Each card carries its dex number, official artwork, name and types, on a background washed with
   its primary type's colour.
-- **Load More** by default (`Load 24 more · 1,001 left`), with an opt-in *keep loading as I scroll*
-  toggle backed by `react-infinite-scroll-component`.
+- **Infinite scroll** by default, in pages of 24, via `react-infinite-scroll-component`. Because the
+  grid is virtualised the two compose cleanly: after scrolling 212 Pokémon into the feed, only ~44
+  cards exist in the DOM.
+- A **Load More** button (`Load 24 more · 809 left`) is one toggle away for anyone who would rather
+  control when the next batch arrives — an endlessly growing page makes the footer unreachable.
 
 **Search**
 
@@ -46,7 +49,8 @@ support and a light/dark design system.
 **Extras**
 
 - ⭐ Favourites, persisted to `localStorage`, with a favourites-only filter.
-- ⭐ Light / dark / system theme, applied before first paint — no flash of the wrong theme.
+- ⭐ Light / dark / system theme, rendered server-side from a cookie — no flash of the wrong theme,
+  and no hydration mismatch to suppress.
 - ⭐ Compare any two Pokémon head-to-head, with the higher stat highlighted per row.
 - ⭐ Full keyboard operation: arrow keys cross the grid, `Home`/`End` jump to the ends, `Enter`
   opens, `Esc` closes, and focus returns to the card you came from.
@@ -74,7 +78,8 @@ support and a light/dark design system.
 | Components | **shadcn/ui** patterns on Radix | Hand-placed primitives in `components/ui`, owned by this repo |
 | Animation | **Motion** (`motion/react`) | Shared-element transitions, spring physics, global reduced-motion |
 | Virtualisation | **TanStack Virtual** | Window virtualiser with a constant row height |
-| Infinite scroll | **react-infinite-scroll-component** | Drives the optional auto-load mode |
+| Infinite scroll | **react-infinite-scroll-component** | Default paging mode, wrapped around the virtualised grid |
+| Theming | Cookie + `color-scheme` + `light-dark()` | Server-rendered, so there is no hydration mismatch and no pre-paint script |
 | Icons | **lucide-react** | One icon per Pokémon type |
 | Lint / format | **Biome** + **oxlint** | Biome owns formatting, imports and a11y; oxlint adds a fast correctness/perf pass. Overlapping rules are disabled on one side so they can never disagree |
 
@@ -195,6 +200,23 @@ only a page loses your scroll position and can't animate from the card. Next.js 
 give both from one URL: clicking a card renders `/pokemon/[name]` into a parallel `@modal` slot while
 the grid stays mounted underneath, and loading that same URL directly renders a full server-rendered
 page. The grid staying mounted is also what makes the shared-element artwork transition possible.
+
+**Theming without a hydration mismatch.** The usual dark-mode recipe — a blocking inline script that
+reads `localStorage` and adds `class="dark"` to `<html>` before paint — guarantees a React hydration
+error, because the client DOM now has an attribute the server never rendered. The common answer is
+`suppressHydrationWarning`, which hides the warning without fixing anything. The actual fix is to
+make the server render the right markup in the first place:
+
+- the preference lives in a **cookie**, not `localStorage`, so `cookies()` in the root layout can
+  read it and emit `class="dark"` / `class="light"` directly into the HTML;
+- **`system` emits no class at all** — `color-scheme: light dark` on `:root` lets the OS decide;
+- every token is declared once with **`light-dark()`**, which resolves against the used
+  `color-scheme`, so there is no duplicated dark palette and no `.dark { … }` override block.
+
+No pre-paint script, nothing mutating the DOM behind React's back, nothing to suppress. Verified
+across all four combinations (system/light, system/dark, forced-dark on a light OS, forced-light on
+a dark OS) with zero console warnings. The one cost is that reading a cookie opts the root layout
+into dynamic rendering — acceptable here, since the shell fetches nothing on the server anyway.
 
 **A scroll-anchoring fight.** The virtualised grid oscillated: scroll position and document height
 flipped between two values every frame. Chrome's scroll anchoring was choosing a card row as its

@@ -1,8 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 import { AppHeader } from "@/components/layout/app-header";
-import { themeInitScript } from "@/hooks/use-theme";
+import { ThemeProvider } from "@/components/layout/theme-provider";
+import { parseTheme, THEME_COOKIE, themeClass } from "@/lib/theme";
+import { cn } from "@/lib/utils/cn";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -26,14 +29,27 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children, modal }: { children: ReactNode; modal: ReactNode }) {
+export default async function RootLayout({
+  children,
+  modal,
+}: {
+  children: ReactNode;
+  modal: ReactNode;
+}) {
+  // Reading the preference here is the whole trick: the theme class ships in the
+  // server HTML, so the client hydrates markup that is already correct.
+  const theme = parseTheme((await cookies()).get(THEME_COOKIE)?.value);
+
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <head>
-        {/* Applies the stored theme before first paint — no flash of the wrong theme. */}
-        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: static, self-authored bootstrap */}
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
+    <html
+      lang="en"
+      className={cn(
+        themeClass(theme),
+        geistSans.variable,
+        geistMono.variable,
+        "h-full antialiased",
+      )}
+    >
       <body className="flex min-h-full flex-col">
         <a
           href="#content"
@@ -42,12 +58,14 @@ export default function RootLayout({ children, modal }: { children: ReactNode; m
           Skip to results
         </a>
 
-        <Providers>
-          <AppHeader />
-          {children}
-          {modal}
-          <SiteFooter />
-        </Providers>
+        <ThemeProvider initialTheme={theme}>
+          <Providers>
+            <AppHeader />
+            {children}
+            {modal}
+            <SiteFooter />
+          </Providers>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -1,6 +1,45 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
+/* ==========================================================================
+   Theming
+   ==========================================================================
+
+   Three states, no JavaScript, no hydration mismatch:
+
+     - system  → no class on <html>; `color-scheme: light dark` follows the OS
+     - light   → <html class="light">, forced
+     - dark    → <html class="dark">, forced
+
+   Every token is declared *once* with `light-dark()`, which resolves against the
+   used value of `color-scheme`. That removes the duplicated dark palette a
+   `.dark { … }` override block would need, and — because the class is rendered by
+   the server from a cookie — the markup React hydrates is already correct. No
+   pre-paint script mutates the DOM, so there is nothing to suppress.
+   ========================================================================== */
+
+:root {
+  color-scheme: light dark;
+}
+
+:root.light {
+  color-scheme: light;
+}
+
+:root.dark {
+  color-scheme: dark;
+}
+
+/* Kept in sync with the strategy above so any `dark:` utility behaves correctly. */
+@custom-variant dark {
+  &:where(.dark, .dark *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not(.light), :root:not(.light) *) {
+      @slot;
+    }
+  }
+}
 
 /* ==========================================================================
    Design tokens
@@ -9,37 +48,25 @@
    ========================================================================== */
 
 :root {
-  --canvas: oklch(0.985 0.003 255);
-  --canvas-muted: oklch(0.965 0.005 255);
-  --surface: oklch(1 0 0);
-  --surface-raised: oklch(0.995 0.002 255);
-  --line: oklch(0.916 0.006 255);
-  --line-strong: oklch(0.86 0.008 255);
-  --ink: oklch(0.235 0.02 268);
-  --ink-muted: oklch(0.53 0.017 268);
-  --ink-faint: oklch(0.68 0.014 268);
-  --brand: oklch(0.585 0.208 26);
-  --brand-ink: oklch(1 0 0);
-  --shadow-resting: 0 1px 2px oklch(0.24 0.02 268 / 0.06), 0 4px 12px oklch(0.24 0.02 268 / 0.05);
-  --shadow-hover: 0 2px 4px oklch(0.24 0.02 268 / 0.07), 0 14px 32px oklch(0.24 0.02 268 / 0.12);
-  --shimmer: oklch(0.93 0.006 255);
-}
+  --canvas: light-dark(oklch(0.985 0.003 255), oklch(0.163 0.014 268));
+  --canvas-muted: light-dark(oklch(0.965 0.005 255), oklch(0.186 0.015 268));
+  --surface: light-dark(oklch(1 0 0), oklch(0.213 0.016 268));
+  --surface-raised: light-dark(oklch(0.995 0.002 255), oklch(0.245 0.017 268));
+  --line: light-dark(oklch(0.916 0.006 255), oklch(0.298 0.017 268));
+  --line-strong: light-dark(oklch(0.86 0.008 255), oklch(0.372 0.019 268));
+  --ink: light-dark(oklch(0.235 0.02 268), oklch(0.972 0.005 268));
+  --ink-muted: light-dark(oklch(0.53 0.017 268), oklch(0.71 0.016 268));
+  --ink-faint: light-dark(oklch(0.68 0.014 268), oklch(0.58 0.016 268));
+  --brand: light-dark(oklch(0.585 0.208 26), oklch(0.66 0.196 26));
+  --brand-ink: light-dark(oklch(1 0 0), oklch(0.16 0.014 268));
+  --shimmer: light-dark(oklch(0.93 0.006 255), oklch(0.27 0.017 268));
 
-.dark {
-  --canvas: oklch(0.163 0.014 268);
-  --canvas-muted: oklch(0.186 0.015 268);
-  --surface: oklch(0.213 0.016 268);
-  --surface-raised: oklch(0.245 0.017 268);
-  --line: oklch(0.298 0.017 268);
-  --line-strong: oklch(0.372 0.019 268);
-  --ink: oklch(0.972 0.005 268);
-  --ink-muted: oklch(0.71 0.016 268);
-  --ink-faint: oklch(0.58 0.016 268);
-  --brand: oklch(0.66 0.196 26);
-  --brand-ink: oklch(0.16 0.014 268);
-  --shadow-resting: 0 1px 2px oklch(0 0 0 / 0.32), 0 4px 14px oklch(0 0 0 / 0.28);
-  --shadow-hover: 0 2px 6px oklch(0 0 0 / 0.4), 0 18px 40px oklch(0 0 0 / 0.42);
-  --shimmer: oklch(0.27 0.017 268);
+  --shadow-resting:
+    0 1px 2px light-dark(oklch(0.24 0.02 268 / 0.06), oklch(0 0 0 / 0.32)),
+    0 4px 12px light-dark(oklch(0.24 0.02 268 / 0.05), oklch(0 0 0 / 0.28));
+  --shadow-hover:
+    0 2px 4px light-dark(oklch(0.24 0.02 268 / 0.07), oklch(0 0 0 / 0.4)),
+    0 14px 32px light-dark(oklch(0.24 0.02 268 / 0.12), oklch(0 0 0 / 0.42));
 }
 
 /* Elemental palette — used as tints and accents, never as flat fills. */
@@ -98,13 +125,7 @@
 }
 
 html {
-  color-scheme: light;
   scrollbar-gutter: stable;
-}
-
-.dark html,
-html.dark {
-  color-scheme: dark;
 }
 
 body {
@@ -136,27 +157,29 @@ body {
  * eighteen hand-tuned foreground values.
  */
 .type-chip {
-  background: color-mix(in oklab, var(--type-color) 14%, transparent);
-  color: color-mix(in oklab, var(--type-color) 58%, black);
-  border: 1px solid color-mix(in oklab, var(--type-color) 26%, transparent);
-}
-
-.dark .type-chip {
-  background: color-mix(in oklab, var(--type-color) 20%, transparent);
-  color: color-mix(in oklab, var(--type-color) 42%, white);
-  border-color: color-mix(in oklab, var(--type-color) 32%, transparent);
+  background: light-dark(
+    color-mix(in oklab, var(--type-color) 14%, transparent),
+    color-mix(in oklab, var(--type-color) 20%, transparent)
+  );
+  color: light-dark(
+    color-mix(in oklab, var(--type-color) 58%, black),
+    color-mix(in oklab, var(--type-color) 42%, white)
+  );
+  border: 1px solid
+    light-dark(
+      color-mix(in oklab, var(--type-color) 26%, transparent),
+      color-mix(in oklab, var(--type-color) 32%, transparent)
+    );
 }
 
 .type-chip[data-selected="true"] {
-  background: color-mix(in oklab, var(--type-color) 88%, black 4%);
-  color: white;
+  background: light-dark(
+    color-mix(in oklab, var(--type-color) 88%, black 4%),
+    color-mix(in oklab, var(--type-color) 82%, white 6%)
+  );
+  color: light-dark(white, oklch(0.16 0.014 268));
   border-color: transparent;
   box-shadow: 0 4px 14px color-mix(in oklab, var(--type-color) 38%, transparent);
-}
-
-.dark .type-chip[data-selected="true"] {
-  background: color-mix(in oklab, var(--type-color) 82%, white 6%);
-  color: oklch(0.16 0.014 268);
 }
 
 /* Card surface picks up the faintest wash of its primary type. */
@@ -164,17 +187,11 @@ body {
   background:
     radial-gradient(
       120% 90% at 50% 8%,
-      color-mix(in oklab, var(--type-color) 20%, transparent) 0%,
-      transparent 62%
-    ),
-    var(--surface);
-}
-
-.dark .type-wash {
-  background:
-    radial-gradient(
-      120% 90% at 50% 8%,
-      color-mix(in oklab, var(--type-color) 26%, transparent) 0%,
+      light-dark(
+          color-mix(in oklab, var(--type-color) 20%, transparent),
+          color-mix(in oklab, var(--type-color) 26%, transparent)
+        )
+        0%,
       transparent 62%
     ),
     var(--surface);
@@ -185,6 +202,18 @@ body {
     90deg,
     color-mix(in oklab, var(--type-color) 62%, transparent),
     var(--type-color)
+  );
+}
+
+/* Ambient hero backdrop. Opacity lives inside the colour so one declaration
+   covers both themes — `light-dark()` takes colours, not numbers. */
+.aurora-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  background: light-dark(
+    color-mix(in oklab, var(--aurora-color) 15%, transparent),
+    color-mix(in oklab, var(--aurora-color) 21%, transparent)
   );
 }
 

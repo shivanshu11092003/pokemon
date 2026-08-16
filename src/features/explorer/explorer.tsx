@@ -155,30 +155,26 @@ export function Explorer() {
           />
         ) : (
           <>
-            {autoLoad ? (
-              <InfiniteScroll
-                dataLength={feed.items.length}
-                next={feed.loadMore}
-                hasMore={feed.hasMore}
-                scrollThreshold={0.85}
-                style={{ overflow: "visible" }}
-                loader={
-                  <p className="py-8 text-center text-sm text-ink-faint">Loading more Pokémon…</p>
-                }
-              >
-                <PokemonGrid
-                  items={feed.items}
-                  search={params.searchString}
-                  activeName={activeName}
-                />
-              </InfiniteScroll>
-            ) : (
+            {/*
+              The wrapper is unconditional — toggling auto-load only flips
+              `hasMore`. Swapping the grid in and out of a parent instead would
+              remount it, throwing away scroll position and the virtualiser's
+              measurements every time the user changed their mind.
+            */}
+            <InfiniteScroll
+              dataLength={feed.items.length}
+              next={feed.loadMore}
+              hasMore={autoLoad && feed.hasMore}
+              scrollThreshold={0.8}
+              style={{ overflow: "visible" }}
+              loader={<AutoLoadIndicator />}
+            >
               <PokemonGrid
                 items={feed.items}
                 search={params.searchString}
                 activeName={activeName}
               />
-            )}
+            </InfiniteScroll>
 
             <LoadMore
               hasMore={feed.hasMore}
@@ -194,6 +190,15 @@ export function Explorer() {
 
       <CompareTray />
     </>
+  );
+}
+
+function AutoLoadIndicator() {
+  return (
+    <p className="flex items-center justify-center gap-2 py-8 text-sm text-ink-faint">
+      <Loader2 className="size-4 animate-spin" aria-hidden />
+      Loading more Pokémon…
+    </p>
   );
 }
 
