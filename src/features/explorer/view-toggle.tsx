@@ -17,14 +17,14 @@ export function ViewToggle({
   onChange: (view: ExplorerView) => void;
 }) {
   return (
-    <fieldset className="inline-flex shrink-0 items-center gap-0.5 rounded-(--radius-control) border border-line bg-surface p-0.5">
+    <fieldset className="raised inline-flex h-11 shrink-0 items-center gap-0.5 rounded-(--radius-control) border border-line bg-surface p-1">
       <legend className="sr-only">Browsing layout</legend>
 
       {OPTIONS.map(({ value: option, label, Icon }) => (
         <label
           key={option}
           className={cn(
-            "flex h-9 cursor-pointer items-center gap-1.5 rounded-[0.5rem] px-2.5 text-[13px] font-medium transition-colors",
+            "flex h-full cursor-pointer items-center gap-1.5 rounded-[0.5rem] px-2.5 text-[13px] font-medium transition-colors duration-200",
             "has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-brand",
             value === option ? "bg-canvas-muted text-ink" : "text-ink-faint hover:text-ink-muted",
           )}

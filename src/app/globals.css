@@ -183,6 +183,58 @@ body {
 }
 
 /*
+ * Filter chips: neutral until chosen. The colour dot identifies the type without
+ * spending an accent on it, so the bar carries one saturated colour at a time
+ * instead of eighteen.
+ */
+.type-pill {
+  border: 1px solid transparent;
+  color: var(--ink-muted);
+  transition:
+    background-color 200ms var(--ease-out-soft),
+    border-color 200ms var(--ease-out-soft),
+    color 200ms var(--ease-out-soft),
+    box-shadow 200ms var(--ease-out-soft);
+}
+
+.type-pill:hover {
+  background: var(--canvas-muted);
+  color: var(--ink);
+}
+
+.type-pill[data-selected="true"] {
+  background: color-mix(in oklab, var(--type-color) 13%, var(--surface));
+  border-color: color-mix(in oklab, var(--type-color) 40%, transparent);
+  color: light-dark(
+    color-mix(in oklab, var(--type-color) 62%, black),
+    color-mix(in oklab, var(--type-color) 45%, white)
+  );
+  box-shadow: 0 6px 18px -6px color-mix(in oklab, var(--type-color) 55%, transparent);
+}
+
+.type-dot {
+  background: var(--type-color);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--type-color) 16%, transparent);
+}
+
+/*
+ * A one-pixel highlight along the top edge. It is the cheapest possible cue that
+ * a surface is raised rather than drawn, and it is most of what separates a
+ * "card" from a "rectangle".
+ */
+.raised {
+  box-shadow:
+    inset 0 1px 0 light-dark(oklch(1 0 0 / 0.9), oklch(1 0 0 / 0.06)),
+    var(--shadow-resting);
+}
+
+.raised-lg {
+  box-shadow:
+    inset 0 1px 0 light-dark(oklch(1 0 0 / 0.9), oklch(1 0 0 / 0.07)),
+    var(--shadow-hover);
+}
+
+/*
  * Text set in a Pokémon's own type colour — the trick the reference uses to make
  * each character's name feel like it belongs to them. Same derivation as the
  * chip's ink, so it clears contrast in both themes without per-type tuning.

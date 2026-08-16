@@ -71,7 +71,7 @@ export function StageView({ feed, search, activeName }: StageViewProps) {
         running to the window edges, which is what gives the layout its poster-like
         feel and lets artwork overhang without touching the browser chrome.
       */}
-      <div className="relative isolate overflow-hidden rounded-4xl border border-line bg-canvas-muted/60 px-5 pb-8 pt-10 shadow-hover sm:px-8 sm:pt-12 lg:px-12 lg:pb-12">
+      <div className="raised-lg relative isolate overflow-hidden rounded-4xl border border-line bg-canvas-muted/60 px-5 pb-8 pt-10 sm:px-8 sm:pt-12 lg:px-12 lg:pb-12">
         <StageBackdrop types={item.pokemon?.types ?? []} />
 
         <div className="grid items-end gap-10 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:gap-12">

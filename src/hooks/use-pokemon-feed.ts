@@ -28,7 +28,7 @@ export interface FeedItem extends PokemonIndexEntry {
 
 interface FeedInput {
   query: string;
-  types: PokemonTypeName[];
+  type: PokemonTypeName | null;
   sort: SortKey;
   favoritesOnly: boolean;
   favorites: number[];
@@ -52,19 +52,22 @@ export interface Feed {
 }
 
 export function usePokemonFeed(input: FeedInput): Feed {
-  const { query, types, sort, favoritesOnly, favorites } = input;
+  const { query, type, sort, favoritesOnly, favorites } = input;
   const client = useQueryClient();
 
   const indexQuery = useQuery(pokemonIndexOptions());
 
-  const typeQueries = useQueries({
-    queries: types.map((type) => typeMembersOptions(type)),
-    combine: (results) => ({
-      isPending: results.some((result) => result.isPending),
-      /** Names present in *every* selected type — multi-select is an AND. */
-      names: results.length === 0 ? null : intersect(results.map((r) => r.data ?? [])),
-    }),
+  // One type at a time, so this is a single cached membership list rather than an
+  // intersection — switching types after the first visit costs zero requests.
+  const typeQuery = useQuery({
+    ...typeMembersOptions(type ?? "normal"),
+    enabled: type !== null,
   });
+
+  const typeNames = useMemo(
+    () => (type === null ? null : new Set(typeQuery.data ?? [])),
+    [type, typeQuery.data],
+  );
 
   /* -------------------------------------------------- candidate selection */
 
@@ -77,7 +80,7 @@ export function usePokemonFeed(input: FeedInput): Feed {
     const pool = query ? index : index.filter((entry) => entry.id <= MAX_NATIONAL_DEX_ID);
 
     const favoriteSet = favoritesOnly ? new Set(favorites) : null;
-    const typeSet = typeQueries.names;
+    const typeSet = typeNames;
 
     const matched: Array<{ entry: PokemonIndexEntry; score: number }> = [];
 
@@ -106,7 +109,7 @@ export function usePokemonFeed(input: FeedInput): Feed {
     }
 
     return matched.map((match) => match.entry);
-  }, [indexQuery.data, query, favoritesOnly, favorites, typeQueries.names, sort]);
+  }, [indexQuery.data, query, favoritesOnly, favorites, typeNames, sort]);
 
   /* ------------------------------------------------------- stat hydration */
 
@@ -134,7 +137,7 @@ export function usePokemonFeed(input: FeedInput): Feed {
 
   /* -------------------------------------------------------------- paging */
 
-  const fingerprint = `${query}|${types.join(",")}|${sort}|${favoritesOnly}|${favoritesOnly ? favorites.length : ""}`;
+  const fingerprint = `${query}|${type ?? ""}|${sort}|${favoritesOnly}|${favoritesOnly ? favorites.length : ""}`;
   const [page, setPage] = useState({ fingerprint, count: PAGE_SIZE });
 
   // Adjusting state during render is the documented way to reset derived state on
@@ -194,7 +197,7 @@ export function usePokemonFeed(input: FeedInput): Feed {
     hasMore: visibleCount < ordered.length,
     remaining: Math.max(ordered.length - visibleCount, 0),
     loadMore,
-    isPending: indexQuery.isPending || typeQueries.isPending,
+    isPending: indexQuery.isPending || (type !== null && typeQuery.isPending),
     isError: indexQuery.isError,
     error: indexQuery.error,
     retry,
@@ -204,18 +207,4 @@ export function usePokemonFeed(input: FeedInput): Feed {
       : null,
     suggestions,
   };
-}
-
-function intersect(lists: string[][]): Set<string> {
-  if (lists.length === 0) return new Set();
-  const [first, ...rest] = lists;
-  let result = new Set(first);
-  for (const list of rest) {
-    const next = new Set<string>();
-    for (const name of list) {
-      if (result.has(name)) next.add(name);
-    }
-    result = next;
-  }
-  return result;
 }

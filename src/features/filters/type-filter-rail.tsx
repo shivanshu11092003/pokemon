@@ -1,71 +1,64 @@
 "use client";
 
-import { X } from "lucide-react";
 import { ALL_TYPES, TYPE_META, typeStyle } from "@/lib/pokemon/type-meta";
 import { cn } from "@/lib/utils/cn";
 import type { PokemonTypeName } from "@/types/pokemon";
 
 interface TypeFilterRailProps {
-  selected: PokemonTypeName[];
-  onToggle: (type: PokemonTypeName) => void;
-  onClear: () => void;
+  selected: PokemonTypeName | null;
+  onSelect: (type: PokemonTypeName | null) => void;
 }
 
-export function TypeFilterRail({ selected, onToggle, onClear }: TypeFilterRailProps) {
-  const hasSelection = selected.length > 0;
-
+/**
+ * One type at a time, and — more importantly — one *colour* at a time.
+ *
+ * Rendering all eighteen types as saturated pills put eighteen competing accents
+ * on screen at once, which reads as noise no matter how good the individual
+ * colours are. Here every chip is neutral chrome carrying a small colour dot, and
+ * only the active type is allowed to take its full colour.
+ */
+export function TypeFilterRail({ selected, onSelect }: TypeFilterRailProps) {
   return (
-    <div className="flex items-center gap-2">
-      <fieldset className="rail -mx-1 flex min-w-0 flex-1 gap-2 overflow-x-auto border-0 px-1 py-1">
-        <legend className="sr-only">Filter by type</legend>
+    <fieldset className="rail -mx-1 flex min-w-0 items-center gap-1.5 overflow-x-auto border-0 px-1 py-1">
+      <legend className="sr-only">Filter by type</legend>
 
-        <button
-          type="button"
-          onClick={onClear}
-          aria-pressed={!hasSelection}
-          className={cn(
-            "shrink-0 rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition-colors",
-            hasSelection
-              ? "border-line bg-surface text-ink-muted hover:border-line-strong hover:text-ink"
-              : "border-transparent bg-ink text-canvas",
-          )}
-        >
-          All types
-        </button>
+      <button
+        type="button"
+        onClick={() => onSelect(null)}
+        aria-pressed={selected === null}
+        className={cn(
+          "h-9 shrink-0 rounded-full px-4 text-[13px] font-medium transition-colors duration-200",
+          selected === null
+            ? "bg-ink text-canvas"
+            : "text-ink-faint hover:bg-canvas-muted hover:text-ink",
+        )}
+      >
+        All
+      </button>
 
-        {ALL_TYPES.map((type) => {
-          const isSelected = selected.includes(type);
-          const { label, Icon } = TYPE_META[type];
+      <span aria-hidden className="mx-1 h-5 w-px shrink-0 bg-line" />
 
-          return (
-            <button
-              key={type}
-              type="button"
-              style={typeStyle(type)}
-              data-selected={isSelected}
-              aria-pressed={isSelected}
-              onClick={() => onToggle(type)}
-              className="type-chip shrink-0 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-[background-color,box-shadow,color] duration-150"
-            >
-              <span className="flex items-center gap-1.5">
-                <Icon className="size-3.5" aria-hidden />
-                {label}
-              </span>
-            </button>
-          );
-        })}
-      </fieldset>
+      {ALL_TYPES.map((type) => {
+        const isSelected = selected === type;
+        const { label } = TYPE_META[type];
 
-      {selected.length > 1 && (
-        <button
-          type="button"
-          onClick={onClear}
-          className="hidden shrink-0 items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:text-ink sm:inline-flex"
-        >
-          <X className="size-3.5" />
-          Clear
-        </button>
-      )}
-    </div>
+        return (
+          <button
+            key={type}
+            type="button"
+            style={typeStyle(type)}
+            data-selected={isSelected}
+            aria-pressed={isSelected}
+            onClick={() => onSelect(type)}
+            className="type-pill h-9 shrink-0 rounded-full pl-2.5 pr-3.5 text-[13px] font-medium"
+          >
+            <span className="flex items-center gap-2">
+              <span aria-hidden className="type-dot size-2 rounded-full" />
+              {label}
+            </span>
+          </button>
+        );
+      })}
+    </fieldset>
   );
 }

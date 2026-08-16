@@ -41,7 +41,7 @@ export const PokemonCard = memo(function PokemonCard({
       transition={{ type: "spring", stiffness: 400, damping: 30 }}
       className={cn(
         "type-wash group relative overflow-hidden rounded-[var(--radius-card)] border border-line",
-        "shadow-resting transition-shadow duration-200 hover:shadow-hover",
+        "raised transition-shadow duration-200 hover:shadow-hover",
         "focus-within:border-line-strong",
       )}
     >

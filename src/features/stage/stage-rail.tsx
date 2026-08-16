@@ -180,8 +180,8 @@ function RailCard({
         "group relative flex h-43 w-full flex-col justify-end rounded-card border p-3 text-center",
         "transition-[transform,box-shadow,border-color] duration-300 ease-[var(--ease-out-soft)]",
         isActive
-          ? "type-wash -translate-y-2 border-[color-mix(in_oklab,var(--type-color)_45%,transparent)] shadow-hover"
-          : "border-line bg-surface/70 shadow-resting hover:-translate-y-1 hover:shadow-hover",
+          ? "type-wash raised-lg -translate-y-2 border-[color-mix(in_oklab,var(--type-color)_45%,transparent)]"
+          : "raised border-line bg-surface/70 hover:-translate-y-1 hover:shadow-hover",
       )}
     >
       {/* Artwork escapes the top of the card — the signature move of this layout. */}

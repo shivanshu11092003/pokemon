@@ -33,13 +33,14 @@ transitions, full keyboard support and a light/dark design system.
 **Search**
 
 - Typeahead that resolves on the same frame as the keystroke — it runs against a cached name index,
-  not a request per character.
+  not a request per character. `/` focuses it from anywhere.
 - Accepts names, partial names, fuzzy input (`chrzd` → Charizard) and raw dex numbers.
 - Misses get a designed empty state with **did-you-mean** suggestions derived from edit distance.
 
 **Filtering & sorting**
 
-- Filter by any of the 18 types; selecting several is an AND (`Fire + Flying`).
+- Filter by one of the 18 types at a time. Chips are neutral chrome carrying a small colour dot;
+  only the active type takes its full colour, so the bar shows one accent rather than eighteen.
 - Sort by dex number, name, HP, Attack, Speed or base stat total.
 - Search, filters and sort all live in the URL — `/?q=char&type=fire&sort=attack` is shareable and
   survives a refresh.
@@ -146,7 +147,7 @@ src/
 │
 ├── components/
 │   ├── ui/                       # button, skeleton, tooltip, responsive-modal
-│   ├── layout/                   # header, theme provider + toggle, aurora
+│   ├── layout/                   # header + brand lockup, theme provider, aurora
 │   ├── motion/                   # split-text
 │   ├── pokemon/                  # card, grid, detail, stat bar, type chip, skeletons
 │   └── states/                   # empty + error screens
@@ -227,6 +228,15 @@ No pre-paint script, nothing mutating the DOM behind React's back, nothing to su
 across all four combinations (system/light, system/dark, forced-dark on a light OS, forced-light on
 a dark OS) with zero console warnings. The one cost is that reading a cookie opts the root layout
 into dynamic rendering — acceptable here, since the shell fetches nothing on the server anyway.
+
+**Eighteen accent colours is not a palette, it's noise.** The first version of the filter bar drew
+all eighteen types as saturated pills, permanently. Every one was individually well-chosen and the
+result still looked cheap, because eighteen competing accents on screen at once have no hierarchy —
+nothing is emphasised when everything is. The fix was to spend the colour only where it carries
+meaning: chips became neutral chrome with a small type-coloured dot, and only the *selected* type is
+allowed its full colour, tint and glow. Restricting the filter to one type at a time followed from
+the same reasoning, and it simplified the data layer too — the client-side set intersection that
+multi-select needed collapsed into a single cached membership lookup.
 
 **Making artwork escape its frame.** The layout's signature move is the character overhanging the
 top of its card. Inside a horizontally scrolling carousel that fights you: `overflow-x: auto` clips

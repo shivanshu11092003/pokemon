@@ -41,6 +41,20 @@ export function SearchBar({ value, onChange, search }: SearchBarProps) {
   // flow back into the field.
   useEffect(() => setDraft(value), [value]);
 
+  // "/" focuses search from anywhere, the way every tool with a search field
+  // worth using behaves.
+  useEffect(() => {
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== "/" || event.metaKey || event.ctrlKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
+      event.preventDefault();
+      inputRef.current?.focus();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   useEffect(() => {
     if (debounced !== value) onChange(debounced);
   }, [debounced, value, onChange]);
@@ -108,7 +122,7 @@ export function SearchBar({ value, onChange, search }: SearchBarProps) {
         </label>
 
         <Search
-          className="pointer-events-none absolute left-4 top-1/2 size-[18px] -translate-y-1/2 text-ink-faint"
+          className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-ink-faint"
           aria-hidden
         />
 
@@ -133,13 +147,13 @@ export function SearchBar({ value, onChange, search }: SearchBarProps) {
           onBlur={() => window.setTimeout(() => setIsOpen(false), 120)}
           onKeyDown={onKeyDown}
           className={cn(
-            "h-12 w-full rounded-[var(--radius-control)] border border-line bg-surface pl-11 pr-11 text-[15px] text-ink",
-            "placeholder:text-ink-faint focus:border-line-strong",
+            "raised h-11 w-full rounded-(--radius-control) border border-line bg-surface pl-10 pr-16 text-[14px] text-ink",
+            "transition-colors duration-200 placeholder:text-ink-faint hover:border-line-strong focus:border-line-strong",
             "[&::-webkit-search-cancel-button]:hidden",
           )}
         />
 
-        {draft && (
+        {draft ? (
           <button
             type="button"
             aria-label="Clear search"
@@ -148,10 +162,17 @@ export function SearchBar({ value, onChange, search }: SearchBarProps) {
               onChange("");
               inputRef.current?.focus();
             }}
-            className="absolute right-3 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-full text-ink-faint transition-colors hover:bg-canvas-muted hover:text-ink"
+            className="absolute right-2.5 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-full text-ink-faint transition-colors hover:bg-canvas-muted hover:text-ink"
           >
             <X className="size-4" />
           </button>
+        ) : (
+          <kbd
+            aria-hidden
+            className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-md border border-line bg-canvas-muted px-1.5 py-0.5 font-sans text-[11px] font-medium text-ink-faint sm:block"
+          >
+            /
+          </kbd>
         )}
       </form>
 
@@ -165,7 +186,7 @@ export function SearchBar({ value, onChange, search }: SearchBarProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.15 }}
-            className="absolute z-40 mt-2 w-full overflow-hidden rounded-[var(--radius-control)] border border-line bg-surface p-1.5 shadow-hover"
+            className="absolute z-40 mt-2 w-full overflow-hidden rounded-(--radius-control) border border-line bg-surface p-1.5 shadow-hover"
           >
             {suggestions.map((entry, position) => (
               <li key={entry.id}>

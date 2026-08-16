@@ -69,7 +69,7 @@ export function FeaturedPokemon({ item, href, isActive }: FeaturedPokemonProps) 
       </div>
 
       {/* ------------------------------------------------------------ card */}
-      <article className="relative rounded-[1.75rem] border border-line bg-surface/85 p-5 pt-16 shadow-hover backdrop-blur-xl sm:p-6 sm:pt-20">
+      <article className="raised-lg relative rounded-[1.75rem] border border-line bg-surface/85 p-5 pt-16 backdrop-blur-xl sm:p-6 sm:pt-20">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h2 className="type-ink text-[clamp(1.6rem,2.6vw,2.1rem)] font-bold leading-tight tracking-tight">

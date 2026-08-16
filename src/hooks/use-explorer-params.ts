@@ -11,7 +11,9 @@ export type ExplorerView = (typeof EXPLORER_VIEWS)[number];
 
 export interface ExplorerParams {
   query: string;
-  types: PokemonTypeName[];
+  /** One type at a time. Combining them produced near-empty result sets and a
+   *  filter bar that was impossible to read at a glance. */
+  type: PokemonTypeName | null;
   sort: SortKey;
   favoritesOnly: boolean;
   view: ExplorerView;
@@ -22,8 +24,8 @@ export interface ExplorerParamsApi extends ExplorerParams {
   searchString: string;
   isFiltered: boolean;
   setQuery: (value: string) => void;
-  toggleType: (type: PokemonTypeName) => void;
-  clearTypes: () => void;
+  /** Pass `null` to clear. Selecting the active type also clears it. */
+  selectType: (type: PokemonTypeName | null) => void;
   setSort: (sort: SortKey) => void;
   setFavoritesOnly: (value: boolean) => void;
   setView: (view: ExplorerView) => void;
@@ -33,9 +35,7 @@ export interface ExplorerParamsApi extends ExplorerParams {
 export function readExplorerParams(params: URLSearchParams): ExplorerParams {
   return {
     query: params.get("q")?.trim() ?? "",
-    types: (params.get("type")?.split(",") ?? [])
-      .map(parseTypeName)
-      .filter((type): type is PokemonTypeName => type !== null),
+    type: parseTypeName(params.get("type") ?? ""),
     sort: parseSortKey(params.get("sort")),
     favoritesOnly: params.get("fav") === "1",
     view: params.get("view") === "grid" ? "grid" : "stage",
@@ -45,7 +45,7 @@ export function readExplorerParams(params: URLSearchParams): ExplorerParams {
 function serialise(params: ExplorerParams): string {
   const next = new URLSearchParams();
   if (params.query) next.set("q", params.query);
-  if (params.types.length > 0) next.set("type", params.types.join(","));
+  if (params.type) next.set("type", params.type);
   if (params.sort !== "id") next.set("sort", params.sort);
   if (params.favoritesOnly) next.set("fav", "1");
   // Spotlight is the default, so only the grid needs to be spelled out.
@@ -79,18 +79,11 @@ export function useExplorerParams(): ExplorerParamsApi {
     [commit, current],
   );
 
-  const toggleType = useCallback(
-    (type: PokemonTypeName) =>
-      commit({
-        ...current,
-        types: current.types.includes(type)
-          ? current.types.filter((entry) => entry !== type)
-          : [...current.types, type],
-      }),
+  const selectType = useCallback(
+    (type: PokemonTypeName | null) =>
+      commit({ ...current, type: type === current.type ? null : type }),
     [commit, current],
   );
-
-  const clearTypes = useCallback(() => commit({ ...current, types: [] }), [commit, current]);
 
   const setSort = useCallback((sort: SortKey) => commit({ ...current, sort }), [commit, current]);
 
@@ -108,7 +101,7 @@ export function useExplorerParams(): ExplorerParamsApi {
     () =>
       commit({
         query: "",
-        types: [],
+        type: null,
         sort: current.sort,
         favoritesOnly: false,
         view: current.view,
@@ -121,10 +114,9 @@ export function useExplorerParams(): ExplorerParamsApi {
   return {
     ...current,
     searchString,
-    isFiltered: current.query !== "" || current.types.length > 0 || current.favoritesOnly,
+    isFiltered: current.query !== "" || current.type !== null || current.favoritesOnly,
     setQuery,
-    toggleType,
-    clearTypes,
+    selectType,
     setSort,
     setFavoritesOnly,
     setView,

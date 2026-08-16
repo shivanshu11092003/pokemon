@@ -19,6 +19,7 @@ import { TYPE_META } from "@/lib/pokemon/type-meta";
 import { cn } from "@/lib/utils/cn";
 import { formatCount } from "@/lib/utils/format";
 import { useUiStore } from "@/stores/ui-store";
+import type { PokemonTypeName } from "@/types/pokemon";
 import { LoadMore } from "./load-more";
 import { ViewToggle } from "./view-toggle";
 
@@ -33,7 +34,7 @@ export function Explorer() {
 
   const feed = usePokemonFeed({
     query: params.query,
-    types: params.types,
+    type: params.type,
     sort: params.sort,
     favoritesOnly: params.favoritesOnly,
     // Before hydration the persisted list is unknown; treating it as empty keeps
@@ -63,10 +64,10 @@ export function Explorer() {
   return (
     <>
       {/* ---------------------------------------------------------- toolbar */}
-      <div className="sticky top-16 z-30 border-b border-line bg-canvas/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-[100rem] flex-col gap-3 px-4 py-3 sm:px-6 lg:px-10">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="min-w-0 flex-1 sm:max-w-md">
+      <div className="sticky top-18 z-30 border-b border-line bg-canvas/80 backdrop-blur-xl">
+        <div className="mx-auto max-w-[100rem] px-4 sm:px-6 lg:px-10">
+          <div className="flex flex-col gap-3 py-3.5 sm:flex-row sm:items-center sm:gap-4">
+            <div className="min-w-0 flex-1 sm:max-w-sm">
               <SearchBar
                 value={params.query}
                 onChange={params.setQuery}
@@ -80,10 +81,10 @@ export function Explorer() {
                 aria-pressed={params.favoritesOnly}
                 onClick={() => params.setFavoritesOnly(!params.favoritesOnly)}
                 className={cn(
-                  "inline-flex h-10 items-center gap-2 rounded-(--radius-control) border px-3.5 text-sm font-medium transition-colors",
+                  "inline-flex h-11 items-center gap-2 rounded-(--radius-control) px-3.5 text-sm font-medium transition-colors duration-200",
                   params.favoritesOnly
-                    ? "border-transparent bg-brand text-brand-ink"
-                    : "border-line bg-surface text-ink-muted hover:border-line-strong hover:text-ink",
+                    ? "bg-brand text-brand-ink"
+                    : "text-ink-faint hover:bg-canvas-muted hover:text-ink",
                 )}
               >
                 <Heart className={cn("size-4", params.favoritesOnly && "fill-current")} />
@@ -93,16 +94,16 @@ export function Explorer() {
                 )}
               </button>
 
+              <span aria-hidden className="hidden h-6 w-px bg-line sm:block" />
+
               <SortSelect value={params.sort} onChange={params.setSort} />
               <ViewToggle value={params.view} onChange={params.setView} />
             </div>
           </div>
 
-          <TypeFilterRail
-            selected={params.types}
-            onToggle={params.toggleType}
-            onClear={params.clearTypes}
-          />
+          <div className="border-t border-line py-2">
+            <TypeFilterRail selected={params.type} onSelect={params.selectType} />
+          </div>
         </div>
       </div>
 
@@ -137,10 +138,7 @@ export function Explorer() {
                     {formatCount(feed.totalCount)}
                   </span>{" "}
                   Pokémon
-                  {describeFilters(
-                    params.types.map((type) => TYPE_META[type].label),
-                    params.query,
-                  )}
+                  {describeFilters(params.type, params.query)}
                 </>
               )}
             </h1>
@@ -196,10 +194,7 @@ export function Explorer() {
       {params.view === "stage" && (
         <p aria-live="polite" className="sr-only">
           {showResults
-            ? `${formatCount(feed.totalCount)} Pokémon${describeFilters(
-                params.types.map((type) => TYPE_META[type].label),
-                params.query,
-              )}`
+            ? `${formatCount(feed.totalCount)} Pokémon${describeFilters(params.type, params.query)}`
             : ""}
         </p>
       )}
@@ -259,9 +254,9 @@ function AutoLoadIndicator() {
   );
 }
 
-function describeFilters(typeLabels: string[], query: string): string {
+function describeFilters(type: PokemonTypeName | null, query: string): string {
   const parts: string[] = [];
-  if (typeLabels.length > 0) parts.push(`of type ${typeLabels.join(" + ")}`);
+  if (type) parts.push(`of type ${TYPE_META[type].label}`);
   if (query) parts.push(`matching “${query}”`);
   return parts.length > 0 ? ` ${parts.join(" ")}` : "";
 }
