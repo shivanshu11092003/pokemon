@@ -1,48 +1,37 @@
 "use client";
 
-import { Monitor, Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/components/layout/theme-provider";
-import type { Theme } from "@/lib/theme";
 import { cn } from "@/lib/utils/cn";
 
-const OPTIONS: Array<{ value: Theme; label: string; Icon: typeof Sun }> = [
-  { value: "light", label: "Light", Icon: Sun },
-  { value: "system", label: "System", Icon: Monitor },
-  { value: "dark", label: "Dark", Icon: Moon },
-];
-
 /**
- * A segmented control built on real radio inputs rather than buttons with ARIA —
- * arrow-key selection, form semantics and screen-reader grouping all come free.
+ * A single theme toggle button that switches between light and dark modes.
  */
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
+  const isDark = theme === "dark";
+
+  const toggleTheme = () => {
+    setTheme(isDark ? "light" : "dark");
+  };
 
   return (
-    <fieldset className="inline-flex items-center gap-0.5 rounded-full border border-line bg-surface p-0.5">
-      <legend className="sr-only">Colour theme</legend>
-
-      {OPTIONS.map(({ value, label, Icon }) => (
-        <label
-          key={value}
-          className={cn(
-            "grid size-8 cursor-pointer place-items-center rounded-full transition-colors",
-            "has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-brand",
-            theme === value ? "bg-canvas-muted text-ink" : "text-ink-faint hover:text-ink-muted",
-          )}
-        >
-          <input
-            type="radio"
-            name="theme"
-            value={value}
-            checked={theme === value}
-            onChange={() => setTheme(value)}
-            className="sr-only"
-          />
-          <Icon className="size-4" aria-hidden />
-          <span className="sr-only">{label}</span>
-        </label>
-      ))}
-    </fieldset>
+    <button
+      type="button"
+      onClick={toggleTheme}
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      className={cn(
+        "grid size-9 place-items-center rounded-full border border-line bg-surface text-ink-muted transition-all duration-200",
+        "hover:border-line-strong hover:bg-canvas-muted hover:text-ink active:scale-95",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
+      )}
+    >
+      {isDark ? (
+        <Sun className="size-4 transition-transform duration-300 hover:rotate-45" aria-hidden />
+      ) : (
+        <Moon className="size-4 transition-transform duration-300 hover:-rotate-12" aria-hidden />
+      )}
+    </button>
   );
 }

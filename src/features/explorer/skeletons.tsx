@@ -16,22 +16,22 @@ export function StageSkeleton() {
         <div className="grid items-stretch gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-12">
           <div className="flex flex-col justify-end">
             <div className="-mb-12 flex justify-center sm:-mb-16">
-              <div className="shimmer size-[clamp(9.5rem,20vw,16rem)] rounded-full" />
+              <div className="shimmer size-[clamp(9.5rem,20vw,16rem)] max-w-full rounded-full" />
             </div>
-            <div className="shimmer h-72 rounded-[1.75rem]" />
+            <div className="shimmer h-72 w-full max-w-full rounded-[1.75rem]" />
           </div>
 
-          <div className="flex flex-col justify-between gap-8 lg:gap-12">
+          <div className="flex min-w-0 flex-col justify-between gap-8 lg:gap-12">
             <div className="grid gap-5 sm:grid-cols-[1.05fr_1fr] sm:gap-8">
-              <div className="space-y-3">
-                <div className="shimmer h-4 w-24 rounded-full" />
-                <div className="shimmer h-20 w-full rounded-2xl" />
+              <div className="min-w-0 space-y-3">
+                <div className="shimmer h-4 w-24 max-w-full rounded-full" />
+                <div className="shimmer h-20 w-full max-w-full rounded-2xl" />
               </div>
-              <div className="shimmer h-16 rounded-2xl" />
+              <div className="shimmer h-16 w-full max-w-full rounded-2xl" />
             </div>
 
-            <div>
-              <div className="shimmer mb-2 h-3 w-28 rounded-full" />
+            <div className="min-w-0">
+              <div className="shimmer mb-2 h-3 w-28 max-w-full rounded-full" />
               <div className="flex gap-4 overflow-hidden pt-11">
                 {[0, 1, 2, 3, 4].map((slot) => (
                   <div key={slot} className="shimmer h-43 w-37 shrink-0 rounded-card" />

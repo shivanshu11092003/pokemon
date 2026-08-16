@@ -48,17 +48,17 @@
    ========================================================================== */
 
 :root {
-  --canvas: light-dark(oklch(0.985 0.003 255), oklch(0.121 0.012 268));
-  --canvas-muted: light-dark(oklch(0.965 0.005 255), oklch(0.148 0.013 268));
-  --surface: light-dark(oklch(1 0 0), oklch(0.174 0.014 268));
-  --surface-raised: light-dark(oklch(0.995 0.002 255), oklch(0.202 0.015 268));
-  --line: light-dark(oklch(0.916 0.006 255), oklch(0.256 0.015 268));
-  --line-strong: light-dark(oklch(0.86 0.008 255), oklch(0.33 0.017 268));
-  --ink: light-dark(oklch(0.235 0.02 268), oklch(0.977 0.004 268));
+  --canvas: light-dark(oklch(0.985 0.003 255), oklch(0 0 0));
+  --canvas-muted: light-dark(oklch(0.965 0.005 255), oklch(0.08 0 0));
+  --surface: light-dark(oklch(1 0 0), oklch(0.11 0 0));
+  --surface-raised: light-dark(oklch(0.995 0.002 255), oklch(0.15 0 0));
+  --line: light-dark(oklch(0.916 0.006 255), oklch(0.2 0 0));
+  --line-strong: light-dark(oklch(0.86 0.008 255), oklch(0.28 0 0));
+  --ink: light-dark(oklch(0.235 0.02 268), oklch(0.98 0 0));
   /* Both secondary tiers are tuned to clear 4.5:1 on their own ground; the
      previous values failed it at 4.35:1 in dark and 2.77:1 in light. */
-  --ink-muted: light-dark(oklch(0.5 0.017 268), oklch(0.755 0.015 268));
-  --ink-faint: light-dark(oklch(0.57 0.014 268), oklch(0.6 0.015 268));
+  --ink-muted: light-dark(oklch(0.5 0.017 268), oklch(0.72 0 0));
+  --ink-faint: light-dark(oklch(0.57 0.014 268), oklch(0.55 0 0));
 
   /*
    * One brand red for both themes, always on white. A lighter red with near-black
@@ -73,7 +73,7 @@
    * against a near-black canvas. One value cannot do both, so it is two.
    */
   --brand-accent: light-dark(oklch(0.52 0.215 27), oklch(0.72 0.175 27));
-  --shimmer: light-dark(oklch(0.93 0.006 255), oklch(0.228 0.015 268));
+  --shimmer: light-dark(oklch(0.93 0.006 255), oklch(0.14 0 0));
 
   /* Deeper ground needs deeper shadow, or lifted surfaces stop reading as lifted. */
   --shadow-resting:
