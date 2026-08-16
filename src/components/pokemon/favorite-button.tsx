@@ -36,7 +36,7 @@ export function FavoriteButton({ id, name, size = "sm", className }: FavoriteBut
         "grid place-items-center rounded-full border border-line bg-surface/70 text-ink-faint backdrop-blur transition-colors",
         "hover:border-line-strong hover:text-ink",
         size === "sm" ? "size-8" : "size-10",
-        isFavorite && "border-transparent bg-brand/12 text-brand hover:text-brand",
+        isFavorite && "border-transparent bg-brand/12 text-brand-accent hover:text-brand-accent",
         className,
       )}
     >

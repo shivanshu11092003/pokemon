@@ -50,10 +50,15 @@ export const TYPE_META: Record<PokemonTypeName, TypeMeta> = {
 
 export const ALL_TYPES = POKEMON_TYPES;
 
-const TYPE_SET = new Set<string>(POKEMON_TYPES);
-
-export function parseTypeName(value: string): PokemonTypeName | null {
-  return TYPE_SET.has(value) ? (value as PokemonTypeName) : null;
+/**
+ * Parses the comma-separated `?type=` query value. Invalid segments are dropped,
+ * and the result follows `ALL_TYPES` order regardless of the order in the URL, so
+ * the same selection always serialises to the same string.
+ */
+export function parseTypeNames(value: string): PokemonTypeName[] {
+  if (!value) return [];
+  const requested = new Set(value.split(","));
+  return POKEMON_TYPES.filter((type) => requested.has(type));
 }
 
 /**

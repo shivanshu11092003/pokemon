@@ -1,7 +1,6 @@
 "use client";
 
 import { ChevronLeft, ChevronRight, GitCompareArrows, Volume2 } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect } from "react";
 import { FavoriteButton } from "@/components/pokemon/favorite-button";
 import { MovesSection } from "@/components/pokemon/moves-section";
@@ -11,7 +10,6 @@ import { TypeChip } from "@/components/pokemon/type-chip";
 import { Button } from "@/components/ui/button";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { typeStyle } from "@/lib/pokemon/type-meta";
-import { cn } from "@/lib/utils/cn";
 import { formatDexNumber, formatHeight, formatWeight } from "@/lib/utils/format";
 import { useUiStore } from "@/stores/ui-store";
 import type { Pokemon, StatKey } from "@/types/pokemon";
@@ -20,17 +18,9 @@ interface PokemonDetailProps {
   pokemon: Pokemon;
   neighbours: { previous: string | null; next: string | null };
   onNavigate: (name: string) => void;
-  /** `modal` sits on the canvas colour; `page` sits inside the normal page flow. */
-  variant?: "modal" | "page";
 }
 
-export function PokemonDetail({
-  pokemon,
-  neighbours,
-  onNavigate,
-  variant = "modal",
-}: PokemonDetailProps) {
-  const reducedMotion = useReducedMotion();
+export function PokemonDetail({ pokemon, neighbours, onNavigate }: PokemonDetailProps) {
   const hydrated = useHydrated();
   const compare = useUiStore((state) => state.compare);
   const toggleCompare = useUiStore((state) => state.toggleCompare);
@@ -67,14 +57,11 @@ export function PokemonDetail({
   };
 
   return (
-    <div style={typeStyle(pokemon.types[0])} className={cn(variant === "page" && "pb-16")}>
+    <div style={typeStyle(pokemon.types[0])} className="pb-16">
       {/* ------------------------------------------------------------ hero */}
       <header className="type-wash relative px-6 pb-8 pt-10 md:px-10 md:pt-12">
         <div className="mx-auto flex max-w-3xl flex-col items-center gap-6 md:flex-row md:items-end md:gap-10">
-          <motion.div
-            layoutId={reducedMotion ? undefined : `pokemon-art-${pokemon.id}`}
-            className="grid size-[190px] shrink-0 place-items-center md:size-[224px]"
-          >
+          <div className="grid size-[190px] shrink-0 place-items-center md:size-[224px]">
             <PokemonArt
               id={pokemon.id}
               name={pokemon.displayName}
@@ -82,7 +69,7 @@ export function PokemonDetail({
               priority
               className="size-full drop-shadow-[0_16px_28px_rgba(0,0,0,0.22)]"
             />
-          </motion.div>
+          </div>
 
           <div className="flex min-w-0 flex-1 flex-col items-center gap-3 md:items-start">
             <span className="tabular text-sm font-semibold text-ink-faint">

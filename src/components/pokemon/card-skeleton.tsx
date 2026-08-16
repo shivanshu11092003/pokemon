@@ -8,14 +8,17 @@ export function CardSkeleton() {
   return (
     <div
       style={{ height: CARD_HEIGHT }}
-      className="flex flex-col items-center justify-end gap-3 rounded-[var(--radius-card)] border border-line bg-surface px-4 pb-5 pt-10"
+      className="flex flex-col rounded-[var(--radius-card)] border border-line bg-surface"
       aria-hidden
     >
-      <div className="shimmer size-[118px] rounded-full" />
-      <div className="shimmer h-4 w-24 rounded-full" />
-      <div className="flex gap-1.5">
-        <span className="shimmer h-[26px] w-16 rounded-full" />
-        <span className="shimmer h-[26px] w-14 rounded-full opacity-60" />
+      <div className="shimmer h-[168px] shrink-0 rounded-t-[calc(var(--radius-card)-1px)]" />
+      <div className="flex flex-1 flex-col items-start px-4 pb-4 pt-7">
+        <div className="shimmer h-3 w-12 rounded-full" />
+        <div className="shimmer mt-2 h-4 w-24 rounded-full" />
+        <div className="mt-2.5 flex gap-1.5">
+          <span className="shimmer h-[26px] w-16 rounded-full" />
+          <span className="shimmer h-[26px] w-14 rounded-full opacity-60" />
+        </div>
       </div>
     </div>
   );

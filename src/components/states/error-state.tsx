@@ -18,7 +18,7 @@ export function ErrorState({ error, onRetry, className }: ErrorStateProps) {
       role="alert"
       className={`flex flex-col items-center justify-center rounded-[var(--radius-card)] border border-line bg-surface px-6 py-20 text-center ${className ?? ""}`}
     >
-      <div className="mb-5 grid size-14 place-items-center rounded-full bg-brand/10 text-brand">
+      <div className="mb-5 grid size-14 place-items-center rounded-full bg-brand/10 text-brand-accent">
         <TriangleAlert className="size-6" />
       </div>
       <h2 className="text-lg font-semibold text-ink">{title}</h2>

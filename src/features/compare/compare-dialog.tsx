@@ -112,7 +112,7 @@ function StatCell({
       className={cn(
         "tabular block text-lg font-semibold",
         align === "left" ? "text-left" : "text-right",
-        wins ? "text-brand" : "text-ink-muted",
+        wins ? "text-brand-accent" : "text-ink-muted",
       )}
     >
       {value}

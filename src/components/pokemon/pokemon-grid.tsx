@@ -12,7 +12,6 @@ interface PokemonGridProps {
   items: FeedItem[];
   /** Query string carried onto every card link so filters survive the detail view. */
   search: string;
-  activeName: string | null;
 }
 
 /**
@@ -20,7 +19,7 @@ interface PokemonGridProps {
  * which is what lets the full 1025-entry dex scroll at 60fps, and the row height is
  * a constant so the scrollbar never lies about how long the page is.
  */
-export function PokemonGrid({ items, search, activeName }: PokemonGridProps) {
+export function PokemonGrid({ items, search }: PokemonGridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const columns = useColumnCount(containerRef);
   const reducedMotion = useReducedMotion();
@@ -100,7 +99,6 @@ export function PokemonGrid({ items, search, activeName }: PokemonGridProps) {
                       item={item}
                       index={start + column}
                       href={search ? `/pokemon/${item.name}?${search}` : `/pokemon/${item.name}`}
-                      isActive={activeName === item.name}
                     />
                   </motion.div>
                 );

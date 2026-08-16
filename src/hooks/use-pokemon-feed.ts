@@ -28,7 +28,7 @@ export interface FeedItem extends PokemonIndexEntry {
 
 interface FeedInput {
   query: string;
-  type: PokemonTypeName | null;
+  types: PokemonTypeName[];
   sort: SortKey;
   favoritesOnly: boolean;
   favorites: number[];
@@ -52,22 +52,27 @@ export interface Feed {
 }
 
 export function usePokemonFeed(input: FeedInput): Feed {
-  const { query, type, sort, favoritesOnly, favorites } = input;
+  const { query, types, sort, favoritesOnly, favorites } = input;
   const client = useQueryClient();
 
   const indexQuery = useQuery(pokemonIndexOptions());
 
-  // One type at a time, so this is a single cached membership list rather than an
-  // intersection — switching types after the first visit costs zero requests.
-  const typeQuery = useQuery({
-    ...typeMembersOptions(type ?? "normal"),
-    enabled: type !== null,
+  // One membership list per selected type, each cached on its own, so re-selecting
+  // a type seen before costs zero requests. The filter itself is the union.
+  const typeQueries = useQueries({
+    queries: types.map((type) => typeMembersOptions(type)),
   });
 
-  const typeNames = useMemo(
-    () => (type === null ? null : new Set(typeQuery.data ?? [])),
-    [type, typeQuery.data],
-  );
+  const typesPending = types.length > 0 && typeQueries.some((result) => result.isPending);
+
+  const typeNames = useMemo(() => {
+    if (types.length === 0) return null;
+    const names = new Set<string>();
+    for (const result of typeQueries) {
+      for (const name of result.data ?? []) names.add(name);
+    }
+    return names;
+  }, [types, typeQueries]);
 
   /* -------------------------------------------------- candidate selection */
 
@@ -137,7 +142,7 @@ export function usePokemonFeed(input: FeedInput): Feed {
 
   /* -------------------------------------------------------------- paging */
 
-  const fingerprint = `${query}|${type ?? ""}|${sort}|${favoritesOnly}|${favoritesOnly ? favorites.length : ""}`;
+  const fingerprint = `${query}|${types.join(",")}|${sort}|${favoritesOnly}|${favoritesOnly ? favorites.length : ""}`;
   const [page, setPage] = useState({ fingerprint, count: PAGE_SIZE });
 
   // Adjusting state during render is the documented way to reset derived state on
@@ -197,7 +202,7 @@ export function usePokemonFeed(input: FeedInput): Feed {
     hasMore: visibleCount < ordered.length,
     remaining: Math.max(ordered.length - visibleCount, 0),
     loadMore,
-    isPending: indexQuery.isPending || (type !== null && typeQuery.isPending),
+    isPending: indexQuery.isPending || typesPending,
     isError: indexQuery.isError,
     error: indexQuery.error,
     retry,

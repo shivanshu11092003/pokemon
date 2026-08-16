@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { parseSortKey, type SortKey } from "@/lib/pokemon/sort";
-import { parseTypeName } from "@/lib/pokemon/type-meta";
+import { ALL_TYPES, parseTypeNames } from "@/lib/pokemon/type-meta";
 import type { PokemonTypeName } from "@/types/pokemon";
 
 export const EXPLORER_VIEWS = ["stage", "grid"] as const;
@@ -11,9 +11,10 @@ export type ExplorerView = (typeof EXPLORER_VIEWS)[number];
 
 export interface ExplorerParams {
   query: string;
-  /** One type at a time. Combining them produced near-empty result sets and a
-   *  filter bar that was impossible to read at a glance. */
-  type: PokemonTypeName | null;
+  /** Selected types combine as a union: a Pokémon matches when it has *any* of
+   *  them. Intersection was tried first and produced near-empty result sets, since
+   *  a Pokémon has at most two types. */
+  types: PokemonTypeName[];
   sort: SortKey;
   favoritesOnly: boolean;
   view: ExplorerView;
@@ -24,8 +25,8 @@ export interface ExplorerParamsApi extends ExplorerParams {
   searchString: string;
   isFiltered: boolean;
   setQuery: (value: string) => void;
-  /** Pass `null` to clear. Selecting the active type also clears it. */
-  selectType: (type: PokemonTypeName | null) => void;
+  toggleType: (type: PokemonTypeName) => void;
+  clearTypes: () => void;
   setSort: (sort: SortKey) => void;
   setFavoritesOnly: (value: boolean) => void;
   setView: (view: ExplorerView) => void;
@@ -35,7 +36,7 @@ export interface ExplorerParamsApi extends ExplorerParams {
 export function readExplorerParams(params: URLSearchParams): ExplorerParams {
   return {
     query: params.get("q")?.trim() ?? "",
-    type: parseTypeName(params.get("type") ?? ""),
+    types: parseTypeNames(params.get("type") ?? ""),
     sort: parseSortKey(params.get("sort")),
     favoritesOnly: params.get("fav") === "1",
     view: params.get("view") === "grid" ? "grid" : "stage",
@@ -45,7 +46,7 @@ export function readExplorerParams(params: URLSearchParams): ExplorerParams {
 function serialise(params: ExplorerParams): string {
   const next = new URLSearchParams();
   if (params.query) next.set("q", params.query);
-  if (params.type) next.set("type", params.type);
+  if (params.types.length > 0) next.set("type", params.types.join(","));
   if (params.sort !== "id") next.set("sort", params.sort);
   if (params.favoritesOnly) next.set("fav", "1");
   // Spotlight is the default, so only the grid needs to be spelled out.
@@ -79,11 +80,20 @@ export function useExplorerParams(): ExplorerParamsApi {
     [commit, current],
   );
 
-  const selectType = useCallback(
-    (type: PokemonTypeName | null) =>
-      commit({ ...current, type: type === current.type ? null : type }),
+  const toggleType = useCallback(
+    (type: PokemonTypeName) => {
+      // Canonical ALL_TYPES order, so the serialised URL never depends on the
+      // order the types were clicked in.
+      const next = current.types.includes(type)
+        ? current.types.filter((selected) => selected !== type)
+        : [...current.types, type];
+      next.sort((a, b) => ALL_TYPES.indexOf(a) - ALL_TYPES.indexOf(b));
+      commit({ ...current, types: next });
+    },
     [commit, current],
   );
+
+  const clearTypes = useCallback(() => commit({ ...current, types: [] }), [commit, current]);
 
   const setSort = useCallback((sort: SortKey) => commit({ ...current, sort }), [commit, current]);
 
@@ -101,7 +111,7 @@ export function useExplorerParams(): ExplorerParamsApi {
     () =>
       commit({
         query: "",
-        type: null,
+        types: [],
         sort: current.sort,
         favoritesOnly: false,
         view: current.view,
@@ -114,9 +124,10 @@ export function useExplorerParams(): ExplorerParamsApi {
   return {
     ...current,
     searchString,
-    isFiltered: current.query !== "" || current.type !== null || current.favoritesOnly,
+    isFiltered: current.query !== "" || current.types.length > 0 || current.favoritesOnly,
     setQuery,
-    selectType,
+    toggleType,
+    clearTypes,
     setSort,
     setFavoritesOnly,
     setView,

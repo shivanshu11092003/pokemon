@@ -6,20 +6,20 @@ import { AppHeader } from "@/components/layout/app-header";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { parseTheme, THEME_COOKIE, themeClass } from "@/lib/theme";
 import { cn } from "@/lib/utils/cn";
-import { Providers } from "./providers";
 import "./globals.css";
+import { Providers } from "./providers";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: {
-    default: "Pokédex Explorer",
-    template: "%s · Pokédex Explorer",
+    default: "Pokémon Explorer",
+    template: "%s · Pokémon Explorer",
   },
   description:
     "Search, filter and compare all 1,025 Pokémon. A fast, accessible Pokédex built on PokéAPI.",
-  applicationName: "Pokédex Explorer",
+  applicationName: "Pokémon Explorer",
 };
 
 export const viewport: Viewport = {
@@ -29,13 +29,7 @@ export const viewport: Viewport = {
   ],
 };
 
-export default async function RootLayout({
-  children,
-  modal,
-}: {
-  children: ReactNode;
-  modal: ReactNode;
-}) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
   // Reading the preference here is the whole trick: the theme class ships in the
   // server HTML, so the client hydrates markup that is already correct.
   const theme = parseTheme((await cookies()).get(THEME_COOKIE)?.value);
@@ -62,7 +56,6 @@ export default async function RootLayout({
           <Providers>
             <AppHeader />
             {children}
-            {modal}
             <SiteFooter />
           </Providers>
         </ThemeProvider>

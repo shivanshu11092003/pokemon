@@ -24,8 +24,6 @@ const STAGE_STATS: StatKey[] = ["hp", "attack", "defense", "speed"];
 interface FeaturedPokemonProps {
   item: FeedItem;
   href: string;
-  /** True while this Pokémon's detail view is open — its art is the shared element. */
-  isActive: boolean;
 }
 
 /**
@@ -33,7 +31,7 @@ interface FeaturedPokemonProps {
  * its real Pokédex entry and a way in. The overflow is the whole point of the
  * composition — the character has to escape its frame.
  */
-export function FeaturedPokemon({ item, href, isActive }: FeaturedPokemonProps) {
+export function FeaturedPokemon({ item, href }: FeaturedPokemonProps) {
   const reducedMotion = useReducedMotion();
   const hydrated = useHydrated();
   const compare = useUiStore((state) => state.compare);
@@ -51,19 +49,17 @@ export function FeaturedPokemon({ item, href, isActive }: FeaturedPokemonProps) 
           <motion.div
             key={item.id}
             initial={reducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.92, y: 24 }}
-            animate={{ opacity: isActive ? 0 : 1, scale: 1, y: 0 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={reducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.96, y: -16 }}
             transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
           >
-            <motion.div layoutId={reducedMotion ? undefined : `pokemon-art-${item.id}`}>
-              <PokemonArt
-                id={item.id}
-                name={item.displayName}
-                size={420}
-                priority
-                className="size-[clamp(9.5rem,20vw,16rem)] drop-shadow-[0_28px_36px_rgba(0,0,0,0.24)]"
-              />
-            </motion.div>
+            <PokemonArt
+              id={item.id}
+              name={item.displayName}
+              size={420}
+              priority
+              className="size-[clamp(9.5rem,20vw,16rem)] drop-shadow-[0_28px_36px_rgba(0,0,0,0.24)]"
+            />
           </motion.div>
         </AnimatePresence>
       </div>

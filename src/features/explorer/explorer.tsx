@@ -1,7 +1,6 @@
 "use client";
 
 import { Heart, Loader2 } from "lucide-react";
-import { usePathname } from "next/navigation";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { CardSkeletonGrid } from "@/components/pokemon/card-skeleton";
 import { PokemonGrid } from "@/components/pokemon/pokemon-grid";
@@ -25,7 +24,6 @@ import { ViewToggle } from "./view-toggle";
 
 export function Explorer() {
   const params = useExplorerParams();
-  const pathname = usePathname();
   const hydrated = useHydrated();
 
   const favorites = useUiStore((state) => state.favorites);
@@ -34,19 +32,13 @@ export function Explorer() {
 
   const feed = usePokemonFeed({
     query: params.query,
-    type: params.type,
+    types: params.types,
     sort: params.sort,
     favoritesOnly: params.favoritesOnly,
     // Before hydration the persisted list is unknown; treating it as empty keeps
     // server and client markup identical.
     favorites: hydrated ? favorites : [],
   });
-
-  // Both views stay mounted underneath the detail modal, so the "open" Pokémon is
-  // read from the path rather than from state.
-  const activeName = pathname.startsWith("/pokemon/")
-    ? decodeURIComponent(pathname.split("/")[2] ?? "")
-    : null;
 
   const isEmpty = !feed.isPending && !feed.isError && feed.items.length === 0;
   const showResults = !feed.isPending && !feed.isError && !isEmpty;
@@ -76,7 +68,11 @@ export function Explorer() {
             </div>
 
             <div className="flex shrink-0 items-center gap-2">
-              <TypeFilterMenu selected={params.type} onSelect={params.selectType} />
+              <TypeFilterMenu
+                selected={params.types}
+                onToggle={params.toggleType}
+                onClear={params.clearTypes}
+              />
               <SortSelect value={params.sort} onChange={params.setSort} />
             </div>
 
@@ -86,10 +82,13 @@ export function Explorer() {
                 aria-pressed={params.favoritesOnly}
                 onClick={() => params.setFavoritesOnly(!params.favoritesOnly)}
                 className={cn(
-                  "inline-flex h-11 items-center gap-2 rounded-(--radius-control) px-3.5 text-sm font-medium transition-colors duration-200",
+                  "inline-flex h-11 items-center gap-2 rounded-(--radius-control) border border-transparent px-3.5 text-sm font-medium transition-colors duration-200",
+                  // A tinted, outlined "on" state rather than a solid fill: it
+                  // matches how an active type reads, and a saturated block of
+                  // brand red is far too loud for a toggle sitting in a toolbar.
                   params.favoritesOnly
-                    ? "bg-brand text-brand-ink"
-                    : "text-ink-faint hover:bg-canvas-muted hover:text-ink",
+                    ? "border-brand/35 bg-brand/12 text-brand-accent"
+                    : "text-ink-muted hover:bg-canvas-muted hover:text-ink",
                 )}
               >
                 <Heart className={cn("size-4", params.favoritesOnly && "fill-current")} />
@@ -118,12 +117,12 @@ export function Explorer() {
         ) : isEmpty ? (
           <Shell>{emptyState}</Shell>
         ) : (
-          <StageView feed={feed} search={params.searchString} activeName={activeName} />
+          <StageView feed={feed} search={params.searchString} />
         )
       ) : (
         <main
           id="content"
-          className="mx-auto w-full max-w-[100rem] px-4 pb-24 pt-6 sm:px-6 lg:px-10"
+          className="mx-auto w-full max-w-[100rem] px-4 pb-24 pt-6 sm:px-6 sm:pt-7 lg:px-10 lg:pt-9"
         >
           <div className="mb-5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
             <h1 aria-live="polite" className="text-sm text-ink-muted">
@@ -138,7 +137,7 @@ export function Explorer() {
                     {formatCount(feed.totalCount)}
                   </span>{" "}
                   Pokémon
-                  {describeFilters(params.type, params.query)}
+                  {describeFilters(params.types, params.query)}
                 </>
               )}
             </h1>
@@ -170,11 +169,7 @@ export function Explorer() {
                 style={{ overflow: "visible" }}
                 loader={<AutoLoadIndicator />}
               >
-                <PokemonGrid
-                  items={feed.items}
-                  search={params.searchString}
-                  activeName={activeName}
-                />
+                <PokemonGrid items={feed.items} search={params.searchString} />
               </InfiniteScroll>
 
               <LoadMore
@@ -194,7 +189,7 @@ export function Explorer() {
       {params.view === "stage" && (
         <p aria-live="polite" className="sr-only">
           {showResults
-            ? `${formatCount(feed.totalCount)} Pokémon${describeFilters(params.type, params.query)}`
+            ? `${formatCount(feed.totalCount)} Pokémon${describeFilters(params.types, params.query)}`
             : ""}
         </p>
       )}
@@ -215,7 +210,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 /** Mirrors the spotlight panel so nothing jumps when the first page lands. */
 function StageSkeleton() {
   return (
-    <div className="mx-auto w-full max-w-[100rem] px-3 pb-6 sm:px-5 lg:px-8">
+    <div className="mx-auto w-full max-w-[100rem] px-3 py-4 sm:px-5 sm:py-5 lg:px-8 lg:py-8">
       <div className="rounded-4xl border border-line bg-canvas-muted/60 px-5 pb-8 pt-10 sm:px-8 sm:pt-12 lg:px-12 lg:pb-12">
         <div className="grid items-end gap-10 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:gap-12">
           <div>
@@ -254,9 +249,17 @@ function AutoLoadIndicator() {
   );
 }
 
-function describeFilters(type: PokemonTypeName | null, query: string): string {
+function describeFilters(types: PokemonTypeName[], query: string): string {
   const parts: string[] = [];
-  if (type) parts.push(`of type ${TYPE_META[type].label}`);
+  if (types.length === 1) {
+    parts.push(`of type ${TYPE_META[types[0]].label}`);
+  } else if (types.length > 1) {
+    const labels = types.map((type) => TYPE_META[type].label);
+    const shown = labels.slice(0, 2).join(", ");
+    parts.push(
+      labels.length > 2 ? `of type ${shown} +${labels.length - 2} more` : `of type ${shown}`,
+    );
+  }
   if (query) parts.push(`matching “${query}”`);
   return parts.length > 0 ? ` ${parts.join(" ")}` : "";
 }

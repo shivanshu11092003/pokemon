@@ -13,7 +13,6 @@ interface StageViewProps {
   feed: Feed;
   /** Current filter/search query string, carried onto the detail link. */
   search: string;
-  activeName: string | null;
 }
 
 /**
@@ -24,7 +23,7 @@ interface StageViewProps {
  * and writing every arrow-key press into history would make the back button
  * useless. The shareable URL is the full entry the card opens.
  */
-export function StageView({ feed, search, activeName }: StageViewProps) {
+export function StageView({ feed, search }: StageViewProps) {
   const router = useRouter();
   const prefetch = usePrefetchPokemon();
   const { items, loadMore, hasMore, totalCount } = feed;
@@ -65,7 +64,12 @@ export function StageView({ feed, search, activeName }: StageViewProps) {
   if (!item) return null;
 
   return (
-    <main id="content" className="mx-auto w-full max-w-[100rem] px-3 pb-6 sm:px-5 lg:px-8">
+    <main
+      id="content"
+      // Vertical inset mirrors the horizontal one, so the panel sits in an even
+      // frame rather than touching the toolbar above it.
+      className="mx-auto w-full max-w-[100rem] px-3 py-4 sm:px-5 sm:py-5 lg:px-8 lg:py-8"
+    >
       {/*
         The framed panel: content sits on a raised, rounded surface rather than
         running to the window edges, which is what gives the layout its poster-like
@@ -75,16 +79,12 @@ export function StageView({ feed, search, activeName }: StageViewProps) {
         <StageBackdrop types={item.pokemon?.types ?? []} />
 
         <div className="grid items-stretch gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-12">
-          <FeaturedPokemon
-            item={item}
-            href={hrefFor(item.name)}
-            isActive={activeName === item.name}
-          />
+          <FeaturedPokemon item={item} href={hrefFor(item.name)} />
 
           <div className="flex min-w-0 flex-col justify-between gap-8 lg:gap-12">
             <header className="grid gap-5 sm:grid-cols-[1.05fr_1fr] sm:items-start sm:gap-8">
               <div>
-                <p className="text-sm font-bold tracking-tight text-brand">Go explore</p>
+                <p className="text-sm font-bold tracking-tight text-brand-accent">Go explore</p>
                 <h1 className="mt-2 text-[clamp(2.25rem,4.6vw,3.5rem)] font-bold leading-[0.95] tracking-[-0.035em] text-ink">
                   The world
                   <br />
