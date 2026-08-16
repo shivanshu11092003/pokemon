@@ -1,0 +1,27 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "unicorn"],
+  "env": { "browser": true, "es2024": true },
+  "settings": { "react": { "version": "19.0" } },
+  "categories": {
+    "correctness": "error",
+    "perf": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    "no-console": "error",
+    "no-debugger": "error",
+    "react/jsx-key": "error",
+    "react/rules-of-hooks": "error",
+    "typescript/no-explicit-any": "error",
+
+    "react/react-in-jsx-scope": "off",
+
+    "no-unused-vars": "off",
+    "typescript/no-unused-vars": "off",
+    "unicorn/no-array-sort": "off",
+    "unicorn/no-array-for-each": "off",
+    "unicorn/prefer-query-selector": "off"
+  },
+  "ignorePatterns": [".next", "node_modules", "next-env.d.ts"]
+}

@@ -1,0 +1,66 @@
+import {
+  Bug,
+  Circle,
+  Droplets,
+  Eye,
+  Feather,
+  Flame,
+  Gem,
+  Ghost,
+  Heart,
+  Leaf,
+  type LucideIcon,
+  Moon,
+  Mountain,
+  Shield,
+  Skull,
+  Snowflake,
+  Sparkles,
+  Swords,
+  Zap,
+} from "lucide-react";
+import type { CSSProperties } from "react";
+import { POKEMON_TYPES, type PokemonTypeName } from "@/types/pokemon";
+
+interface TypeMeta {
+  label: string;
+  Icon: LucideIcon;
+}
+
+export const TYPE_META: Record<PokemonTypeName, TypeMeta> = {
+  normal: { label: "Normal", Icon: Circle },
+  fire: { label: "Fire", Icon: Flame },
+  water: { label: "Water", Icon: Droplets },
+  electric: { label: "Electric", Icon: Zap },
+  grass: { label: "Grass", Icon: Leaf },
+  ice: { label: "Ice", Icon: Snowflake },
+  fighting: { label: "Fighting", Icon: Swords },
+  poison: { label: "Poison", Icon: Skull },
+  ground: { label: "Ground", Icon: Mountain },
+  flying: { label: "Flying", Icon: Feather },
+  psychic: { label: "Psychic", Icon: Eye },
+  bug: { label: "Bug", Icon: Bug },
+  rock: { label: "Rock", Icon: Gem },
+  ghost: { label: "Ghost", Icon: Ghost },
+  dragon: { label: "Dragon", Icon: Sparkles },
+  dark: { label: "Dark", Icon: Moon },
+  steel: { label: "Steel", Icon: Shield },
+  fairy: { label: "Fairy", Icon: Heart },
+};
+
+export const ALL_TYPES = POKEMON_TYPES;
+
+const TYPE_SET = new Set<string>(POKEMON_TYPES);
+
+export function parseTypeName(value: string): PokemonTypeName | null {
+  return TYPE_SET.has(value) ? (value as PokemonTypeName) : null;
+}
+
+/**
+ * Publishes `--type-color` onto a subtree. Every type-aware style in the app
+ * (`.type-chip`, `.type-wash`, `.stat-bar-fill`) reads that one variable, which
+ * is why none of them need eighteen variants.
+ */
+export function typeStyle(type: PokemonTypeName | undefined): CSSProperties {
+  return { "--type-color": `var(--type-${type ?? "normal"})` } as CSSProperties;
+}

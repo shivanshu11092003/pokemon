@@ -1,0 +1,254 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ==========================================================================
+   Design tokens
+   Every colour, radius and shadow in the app resolves to one of these.
+   Components must never hardcode a hex value.
+   ========================================================================== */
+
+:root {
+  --canvas: oklch(0.985 0.003 255);
+  --canvas-muted: oklch(0.965 0.005 255);
+  --surface: oklch(1 0 0);
+  --surface-raised: oklch(0.995 0.002 255);
+  --line: oklch(0.916 0.006 255);
+  --line-strong: oklch(0.86 0.008 255);
+  --ink: oklch(0.235 0.02 268);
+  --ink-muted: oklch(0.53 0.017 268);
+  --ink-faint: oklch(0.68 0.014 268);
+  --brand: oklch(0.585 0.208 26);
+  --brand-ink: oklch(1 0 0);
+  --shadow-resting: 0 1px 2px oklch(0.24 0.02 268 / 0.06), 0 4px 12px oklch(0.24 0.02 268 / 0.05);
+  --shadow-hover: 0 2px 4px oklch(0.24 0.02 268 / 0.07), 0 14px 32px oklch(0.24 0.02 268 / 0.12);
+  --shimmer: oklch(0.93 0.006 255);
+}
+
+.dark {
+  --canvas: oklch(0.163 0.014 268);
+  --canvas-muted: oklch(0.186 0.015 268);
+  --surface: oklch(0.213 0.016 268);
+  --surface-raised: oklch(0.245 0.017 268);
+  --line: oklch(0.298 0.017 268);
+  --line-strong: oklch(0.372 0.019 268);
+  --ink: oklch(0.972 0.005 268);
+  --ink-muted: oklch(0.71 0.016 268);
+  --ink-faint: oklch(0.58 0.016 268);
+  --brand: oklch(0.66 0.196 26);
+  --brand-ink: oklch(0.16 0.014 268);
+  --shadow-resting: 0 1px 2px oklch(0 0 0 / 0.32), 0 4px 14px oklch(0 0 0 / 0.28);
+  --shadow-hover: 0 2px 6px oklch(0 0 0 / 0.4), 0 18px 40px oklch(0 0 0 / 0.42);
+  --shimmer: oklch(0.27 0.017 268);
+}
+
+/* Elemental palette — used as tints and accents, never as flat fills. */
+:root {
+  --type-normal: #a8a77a;
+  --type-fire: #ee8130;
+  --type-water: #6390f0;
+  --type-electric: #f7d02c;
+  --type-grass: #7ac74c;
+  --type-ice: #96d9d6;
+  --type-fighting: #c22e28;
+  --type-poison: #a33ea1;
+  --type-ground: #e2bf65;
+  --type-flying: #a98ff3;
+  --type-psychic: #f95587;
+  --type-bug: #a6b91a;
+  --type-rock: #b6a136;
+  --type-ghost: #735797;
+  --type-dragon: #6f35fc;
+  --type-dark: #705746;
+  --type-steel: #b7b7ce;
+  --type-fairy: #d685ad;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --color-canvas: var(--canvas);
+  --color-canvas-muted: var(--canvas-muted);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+
+  --radius-card: 1.25rem;
+  --radius-control: 0.75rem;
+
+  --shadow-resting: var(--shadow-resting);
+  --shadow-hover: var(--shadow-hover);
+
+  --ease-out-soft: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+* {
+  border-color: var(--line);
+}
+
+html {
+  color-scheme: light;
+  scrollbar-gutter: stable;
+}
+
+.dark html,
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--canvas);
+  color: var(--ink);
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Numbers should never reflow as they animate. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* ==========================================================================
+   Components
+   ========================================================================== */
+
+/*
+ * Type chips derive both their tint and their ink from a single `--type-color`,
+ * so every one of the eighteen types clears 4.5:1 in both themes without
+ * eighteen hand-tuned foreground values.
+ */
+.type-chip {
+  background: color-mix(in oklab, var(--type-color) 14%, transparent);
+  color: color-mix(in oklab, var(--type-color) 58%, black);
+  border: 1px solid color-mix(in oklab, var(--type-color) 26%, transparent);
+}
+
+.dark .type-chip {
+  background: color-mix(in oklab, var(--type-color) 20%, transparent);
+  color: color-mix(in oklab, var(--type-color) 42%, white);
+  border-color: color-mix(in oklab, var(--type-color) 32%, transparent);
+}
+
+.type-chip[data-selected="true"] {
+  background: color-mix(in oklab, var(--type-color) 88%, black 4%);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 14px color-mix(in oklab, var(--type-color) 38%, transparent);
+}
+
+.dark .type-chip[data-selected="true"] {
+  background: color-mix(in oklab, var(--type-color) 82%, white 6%);
+  color: oklch(0.16 0.014 268);
+}
+
+/* Card surface picks up the faintest wash of its primary type. */
+.type-wash {
+  background:
+    radial-gradient(
+      120% 90% at 50% 8%,
+      color-mix(in oklab, var(--type-color) 20%, transparent) 0%,
+      transparent 62%
+    ),
+    var(--surface);
+}
+
+.dark .type-wash {
+  background:
+    radial-gradient(
+      120% 90% at 50% 8%,
+      color-mix(in oklab, var(--type-color) 26%, transparent) 0%,
+      transparent 62%
+    ),
+    var(--surface);
+}
+
+.stat-bar-fill {
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--type-color) 62%, transparent),
+    var(--type-color)
+  );
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes aurora-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(6%, 8%, 0) scale(1.12);
+  }
+}
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--shimmer);
+}
+
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--surface) 70%, transparent),
+    transparent
+  );
+  animation: shimmer 1.6s infinite;
+}
+
+/*
+ * Horizontal rails hide their scrollbar but stay scrollable and keyboard
+ * reachable. The trailing mask is the affordance: a chip fading out at the edge
+ * reads as "there is more this way" without adding chrome.
+ */
+.rail {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  mask-image: linear-gradient(to right, black calc(100% - 2rem), transparent 100%);
+}
+
+.rail::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer::after {
+    animation: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
