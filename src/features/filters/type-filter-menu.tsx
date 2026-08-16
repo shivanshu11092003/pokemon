@@ -34,38 +34,66 @@ export function TypeFilterMenu({ selected, onToggle, onClear, className }: TypeF
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          style={first ? typeStyle(first) : undefined}
-          data-selected={count > 0}
-          aria-label={summary}
-          className={cn(
-            "type-pill raised inline-flex h-11 shrink-0 items-center gap-2 rounded-(--radius-control) border-line! bg-surface pl-3 pr-2.5 text-sm font-medium",
-            "hover:border-line-strong! hover:bg-surface",
-            className,
-          )}
-        >
-          {first ? (
-            <TriggerIcon type={first} />
-          ) : (
-            <Shapes className="size-4 shrink-0 text-ink-faint" aria-hidden />
-          )}
-          {first ? TYPE_META[first].label : "All types"}
-          {count > 1 && (
-            <span className="tabular rounded-md bg-canvas-muted px-1.5 py-0.5 text-xs font-semibold text-ink-muted">
-              +{count - 1}
-            </span>
-          )}
-          <ChevronDown
+      {/*
+        The clear button is a sibling of the trigger, not a child of it: nesting a
+        button inside a button is invalid HTML and browsers resolve the click
+        target unpredictably. A shared wrapper carries the pill styling so the two
+        still read as one control.
+      */}
+      <div
+        style={first ? typeStyle(first) : undefined}
+        data-selected={count > 0}
+        className={cn(
+          "type-pill raised inline-flex h-11 shrink-0 items-center rounded-(--radius-control) border-line! bg-surface text-sm font-medium",
+          "has-[button:hover]:border-line-strong!",
+          className,
+        )}
+      >
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            aria-label={summary}
             className={cn(
-              "size-4 text-ink-faint transition-transform duration-200",
-              open && "rotate-180",
+              "inline-flex h-full min-w-0 flex-1 items-center gap-2 rounded-(--radius-control) pl-3 text-inherit",
+              count > 0 ? "pr-1.5" : "pr-2.5",
             )}
-            aria-hidden
-          />
-        </button>
-      </PopoverTrigger>
+          >
+            {first ? (
+              <TriggerIcon type={first} />
+            ) : (
+              <Shapes className="size-4 shrink-0 text-ink-faint" aria-hidden />
+            )}
+            <span className="truncate">{first ? TYPE_META[first].label : "All types"}</span>
+            {count > 1 && (
+              <span className="tabular shrink-0 rounded-md bg-canvas-muted px-1.5 py-0.5 text-xs font-semibold text-ink-muted">
+                +{count - 1}
+              </span>
+            )}
+            <ChevronDown
+              className={cn(
+                "size-4 shrink-0 text-ink-faint transition-transform duration-200",
+                open && "rotate-180",
+              )}
+              aria-hidden
+            />
+          </button>
+        </PopoverTrigger>
+
+        {count > 0 && (
+          <button
+            type="button"
+            onClick={onClear}
+            aria-label={
+              count === 1
+                ? `Clear ${TYPE_META[selected[0]].label} filter`
+                : `Clear all ${count} type filters`
+            }
+            className="mr-1.5 grid size-7 shrink-0 place-items-center rounded-full text-ink-faint transition-colors hover:bg-canvas-muted hover:text-ink"
+          >
+            <X className="size-3.5" aria-hidden />
+          </button>
+        )}
+      </div>
 
       <PopoverContent align="start" className="w-[min(23rem,calc(100vw-2rem))]">
         <button

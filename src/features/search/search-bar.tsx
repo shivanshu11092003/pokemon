@@ -37,9 +37,35 @@ export function SearchBar({ value, onChange, search }: SearchBarProps) {
   const debounced = useDebouncedValue(draft, 300);
   const { data: index } = useQuery(pokemonIndexOptions());
 
-  // The URL is the source of truth: a back-navigation or a cleared filter has to
-  // flow back into the field.
-  useEffect(() => setDraft(value), [value]);
+  /**
+   * The last value this field pushed into the URL.
+   *
+   * Without it the two effects below fight each other. `value` arriving back from
+   * the URL is *our own* commit, one debounce behind whatever has been typed since
+   * — copying it into the draft rewinds the field mid-word. Typing "chariz" slowly
+   * enough that every gap exceeded the debounce actually produced "chaiz": the
+   * commit of "cha" landed while "char" was on screen and overwrote the "r".
+   *
+   * Comparing against this ref distinguishes "the URL changed because we changed
+   * it" (ignore, we are already ahead of it) from "the URL changed underneath us"
+   * — back navigation, a suggestion chip, Clear filters — which must still win.
+   */
+  const lastCommitted = useRef(value);
+
+  useEffect(() => {
+    // While the field has focus the user owns it, full stop. Commits are debounced
+    // and applied through a transition, so echoes can arrive out of order — a
+    // stale one overwrote the draft even with the check below (typing "eevee"
+    // right after a clear left "ee" on screen while the URL correctly said
+    // "eevee"). Nothing outside can legitimately need to retype the field
+    // mid-keystroke, and every real external change — a suggestion chip, Clear
+    // filters, the in-field ✕ — moves focus off it first.
+    if (document.activeElement === inputRef.current) return;
+    if (value === lastCommitted.current) return;
+
+    lastCommitted.current = value;
+    setDraft(value);
+  }, [value]);
 
   // "/" focuses search from anywhere, the way every tool with a search field
   // worth using behaves.
@@ -56,8 +82,13 @@ export function SearchBar({ value, onChange, search }: SearchBarProps) {
   }, []);
 
   useEffect(() => {
-    if (debounced !== value) onChange(debounced);
-  }, [debounced, value, onChange]);
+    // Deliberately not keyed on `value`: it trails our own commits, and depending
+    // on it re-ran this effect every time the URL echoed back.
+    if (debounced !== lastCommitted.current) {
+      lastCommitted.current = debounced;
+      onChange(debounced);
+    }
+  }, [debounced, onChange]);
 
   const suggestions = useMemo(() => {
     if (!index || draft.trim().length < 1) return [];
@@ -158,6 +189,9 @@ export function SearchBar({ value, onChange, search }: SearchBarProps) {
             type="button"
             aria-label="Clear search"
             onClick={() => {
+              // Commits immediately rather than through the debounce, so record it
+              // here too or the echo looks external.
+              lastCommitted.current = "";
               setDraft("");
               onChange("");
               inputRef.current?.focus();
