@@ -11,6 +11,7 @@ interface TypeFilterMenuProps {
   selected: PokemonTypeName[];
   onToggle: (type: PokemonTypeName) => void;
   onClear: () => void;
+  className?: string;
 }
 
 /**
@@ -19,7 +20,7 @@ interface TypeFilterMenuProps {
  * toggles in place and the menu stays open, so assembling "Fire + Water + Grass"
  * takes three clicks in one visit instead of three round trips.
  */
-export function TypeFilterMenu({ selected, onToggle, onClear }: TypeFilterMenuProps) {
+export function TypeFilterMenu({ selected, onToggle, onClear, className }: TypeFilterMenuProps) {
   const [open, setOpen] = useState(false);
   const count = selected.length;
   const first = count > 0 ? selected[0] : null;
@@ -42,6 +43,7 @@ export function TypeFilterMenu({ selected, onToggle, onClear }: TypeFilterMenuPr
           className={cn(
             "type-pill raised inline-flex h-11 shrink-0 items-center gap-2 rounded-(--radius-control) border-line! bg-surface pl-3 pr-2.5 text-sm font-medium",
             "hover:border-line-strong! hover:bg-surface",
+            className,
           )}
         >
           {first ? (

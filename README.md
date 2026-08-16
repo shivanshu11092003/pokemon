@@ -8,6 +8,99 @@ transitions, full keyboard support and a light/dark design system.
 
 ---
 
+## The Assignment
+
+Build a frontend that consumes a public API — [PokéAPI](https://pokeapi.co) — and presents it through a
+polished interface. The brief asked for the API integration to work, and for the result to demonstrate
+UI design, loading states, error handling, responsiveness and component architecture.
+
+### Required, and where it lives
+
+| # | Requirement | How it is met | Code |
+|---|---|---|---|
+| 1 | **Listing** — card layout with image, name, id, types, type-based styling | Two browsing modes: a Spotlight hero and a virtualised card grid. Cards carry artwork, zero-padded dex number, name and type chips on a surface washed with the primary type's colour | [`pokemon-card.tsx`](src/components/pokemon/pokemon-card.tsx), [`stage/`](src/features/stage/) |
+| 2 | **Search** by name, with a not-found state | Debounced typeahead over a cached name index; accepts names, partial names, fuzzy input and raw dex numbers. Misses get a designed empty state with edit-distance suggestions | [`search-bar.tsx`](src/features/search/search-bar.tsx), [`empty-state.tsx`](src/components/states/empty-state.tsx) |
+| 3 | **Pagination / Load More / infinite scroll** | Infinite scroll in pages of 24 — one of the three options the brief allows | [`grid-view.tsx`](src/features/explorer/grid-view.tsx), [`use-pokemon-feed.ts`](src/hooks/use-pokemon-feed.ts) |
+| 4 | **Details** — image, name, id, types, height, weight, abilities, stats, moves | Full `/pokemon/[name]` route with all of the above plus animated stat bars, hidden-ability badges and moves grouped by learn method | [`pokemon-detail.tsx`](src/components/pokemon/pokemon-detail.tsx) |
+| 5 | **Filter by type** | A menu holding all 18 types in an even grid; selection is a union, so `Fire + Water` shows both | [`type-filter-menu.tsx`](src/features/filters/type-filter-menu.tsx) |
+| 6 | **Responsive** desktop / tablet / mobile | Verified at 360, 390, 834, 1440 and 2560px. The toolbar collapses from one row to two; the Spotlight restacks; the grid runs 1–5 columns | [`explorer.tsx`](src/features/explorer/explorer.tsx), [`use-column-count.ts`](src/hooks/use-column-count.ts) |
+| — | **Loading / error / empty states** | Dimension-matched skeletons, a typed error state with retry, and empty states that suggest a way out | [`states/`](src/components/states/), [`card-skeleton.tsx`](src/components/pokemon/card-skeleton.tsx) |
+| ⭐ | Favourites, dark mode, sort, compare, keyboard, URL-based state | All six. See **Features** above | — |
+
+### Beyond the brief
+
+Real Pokédex flavour text and genus from `/pokemon-species`; a spotlight/character-select view; shared
+type-colour theming derived from one CSS variable; window virtualisation in both views; a `/` search
+shortcut; server-rendered metadata for link previews; and a theme system with no hydration mismatch and
+no pre-paint script.
+
+---
+
+## How It Works
+
+### Request flow
+
+```
+        ┌── one cached call, ~1300 names ──────────────────────────────┐
+        │   GET /pokemon?limit=100000        →  name index             │
+        │   GET /type/{type}                 →  membership sets        │
+        └──────────────────────────────────────────────────────────────┘
+                              │
+   URL (?q=&type=&sort=&fav=&view=)  ──►  usePokemonFeed
+                                              │
+              ┌───────────────────────────────┼───────────────────────────────┐
+              ▼                               ▼                               ▼
+      filter the index              sort (id/name free;              slice to the
+      by type ∪ favourites ∪        stat sorts hydrate a             visible page
+      fuzzy query                   bounded pool of 300)             of 24
+                                              │
+                                              ▼
+                            useQueries → GET /pokemon/{name} per visible card
+                                              │
+                                              ▼
+                                  virtualised render (~44 in DOM)
+```
+
+The shape that matters: **the list endpoint is never paginated against.** One index call plus cached
+type sets means every filter, sort and page change after the first visit is computed locally, and the
+only per-Pokémon requests are for cards actually on screen.
+
+### Who owns what state
+
+| State | Owner | Why |
+|---|---|---|
+| Every Pokémon record | TanStack Query | Server data, cached and deduplicated; treated as immutable |
+| Search, type, sort, favourites-only, view | The URL | Makes every view shareable and refresh-proof, and the back button works for free |
+| Favourites, comparison slate | Zustand + `persist` | Genuine device preferences, nothing else |
+| Spotlight cursor, menu open/closed | Local `useState` | Ephemeral; writing arrow-key presses to history would break Back |
+
+Nothing is owned twice. That single rule is what keeps the data layer legible.
+
+### Performance
+
+- **Code splitting.** Spotlight and Grid are mutually exclusive, so neither is in the entry chunk.
+  Loading the app fetches 13 chunks; switching to the grid pulls **one more, 34 KB**, which carries
+  the virtualiser and `react-infinite-scroll-component` with it. Nobody downloads a mode they never open.
+- **Transitions.** Every filter, sort and search commit goes through `useTransition`. Re-filtering
+  1,025 entries is the expensive half of a keystroke; inside a transition React keeps the input
+  responsive and paints when ready rather than blocking on the way through.
+- **Memoisation.** `PokemonCard`, `TypeChip`, `StatBar` and `PokemonArt` are `memo`'d — they render
+  tens to hundreds of times per frame — and the callbacks they receive are `useCallback`-stable so the
+  memo actually holds.
+- **Virtualisation.** ~44 cards in the DOM regardless of how many are loaded, in both views.
+- **Barrel imports.** `optimizePackageImports` for `lucide-react`, `motion` and `@tanstack/react-virtual`,
+  so importing one icon does not pull the whole set into the graph.
+
+### Rendering pipeline
+
+1. `layout.tsx` (server) reads the theme cookie and renders the correct class into the HTML.
+2. `page.tsx` renders `Explorer` inside a `Suspense` boundary — it reads `useSearchParams`.
+3. `Explorer` derives filters from the URL and hands them to `usePokemonFeed`.
+4. The feed returns a windowed list; Spotlight or Grid renders it through a virtualiser.
+5. Clicking a card routes to `/pokemon/[name]`, server-rendered for metadata, hydrated for interaction.
+
+---
+
 ## Features
 
 **Two ways to browse, one toggle apart**
@@ -23,12 +116,12 @@ transitions, full keyboard support and a light/dark design system.
 
 **Paging**
 
-- **Infinite scroll** by default, in pages of 24, via `react-infinite-scroll-component`. Because both
-  views are virtualised the two compose cleanly: after scrolling 212 Pokémon into the feed, only ~44
-  cards exist in the DOM.
-- A **Load More** button (`Load 24 more · 809 left`) is one toggle away for anyone who would rather
-  control when the next batch arrives — an endlessly growing page makes the footer unreachable.
-- In Spotlight the rail pulls the next page in as the selection approaches its right edge.
+- **Infinite scroll**, in pages of 24, via `react-infinite-scroll-component`. Because both views are
+  virtualised the two compose cleanly: scrolling 136 Pokémon into the feed keeps **40 cards in the
+  DOM**, not 136.
+- A quiet end-of-feed rule closes the list once everything matching is loaded, so the page has a
+  bottom rather than trailing off.
+- In Spotlight the carousel pulls the next page in as the selection approaches its right edge.
 
 **Search**
 
@@ -82,12 +175,13 @@ transitions, full keyboard support and a light/dark design system.
 | Framework | **Next.js 16** (App Router) + **React 19** | Intercepting routes give a modal over the grid *and* a real shareable page from one route |
 | Language | **TypeScript** (strict) | No `any`, no `@ts-ignore` in the codebase |
 | Server state | **TanStack Query v5** | `queryOptions` factories, pooled batch fetches, 404-aware retries |
-| Client state | **Zustand** + `persist` | Preferences only — favourites, comparison slate, auto-load |
+| Client state | **Zustand** + `persist` | Preferences only — favourites and the comparison slate |
 | Styling | **Tailwind CSS v4** | CSS-first `@theme` tokens; no colour is hardcoded in a component |
 | Components | **shadcn/ui** patterns on Radix | Hand-placed primitives in `components/ui`, owned by this repo |
 | Animation | **Motion** (`motion/react`) | Shared-element transitions, spring physics, global reduced-motion |
+| Perf | `next/dynamic`, `React.memo`, `useTransition`, `optimizePackageImports` | The two browsing modes are split into their own chunks; filter changes run as non-urgent transitions |
 | Virtualisation | **TanStack Virtual** | Window virtualiser with a constant row height |
-| Infinite scroll | **react-infinite-scroll-component** | Default paging mode, wrapped around the virtualised grid |
+| Infinite scroll | **react-infinite-scroll-component** | The only paging mode, wrapped around the virtualised grid |
 | Theming | Cookie + `color-scheme` + `light-dark()` | Server-rendered, so there is no hydration mismatch and no pre-paint script |
 | Icons | **lucide-react** | One icon per Pokémon type |
 | Lint / format | **Biome** + **oxlint** | Biome owns formatting, imports and a11y; oxlint adds a fast correctness/perf pass. Overlapping rules are disabled on one side so they can never disagree |
@@ -109,6 +203,13 @@ rebuilt as pure CSS so it costs no JavaScript.
 | `GET /type/{type}` | Type membership lists, intersected client-side |
 
 Artwork comes from the PokéAPI sprites CDN, addressed by dex id.
+
+All of it goes through **one function** in [`lib/api/client.ts`](src/lib/api/client.ts) — the platform
+`fetch`, with a 15s timeout composed onto the caller's own abort signal via `AbortSignal.any`, and a
+translation layer producing this app's single `ApiError` (HTTP status, network failure, or timeout).
+Cancellations are re-thrown untouched so TanStack Query recognises an aborted request instead of
+reporting it to the user as a failure. Staying on `fetch` is also what lets Next deduplicate and cache
+these requests on the server. No component, hook or route ever calls the network directly.
 
 ---
 

@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // These ship as barrel files; without this every icon and every motion export
+  // is pulled into the graph because one of them was imported.
+  experimental: {
+    optimizePackageImports: ["lucide-react", "motion", "@tanstack/react-virtual"],
+  },
+
   images: {
     remotePatterns: [
       {

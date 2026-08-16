@@ -1,16 +1,13 @@
 "use client";
 
-import { Heart, Loader2 } from "lucide-react";
-import InfiniteScroll from "react-infinite-scroll-component";
-import { CardSkeletonGrid } from "@/components/pokemon/card-skeleton";
-import { PokemonGrid } from "@/components/pokemon/pokemon-grid";
+import { Heart } from "lucide-react";
+import dynamic from "next/dynamic";
 import { EmptyState } from "@/components/states/empty-state";
 import { ErrorState } from "@/components/states/error-state";
 import { CompareTray } from "@/features/compare/compare-tray";
 import { SortSelect } from "@/features/filters/sort-select";
 import { TypeFilterMenu } from "@/features/filters/type-filter-menu";
 import { SearchBar } from "@/features/search/search-bar";
-import { StageView } from "@/features/stage/stage-view";
 import { useExplorerParams } from "@/hooks/use-explorer-params";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { usePokemonFeed } from "@/hooks/use-pokemon-feed";
@@ -19,16 +16,28 @@ import { cn } from "@/lib/utils/cn";
 import { formatCount } from "@/lib/utils/format";
 import { useUiStore } from "@/stores/ui-store";
 import type { PokemonTypeName } from "@/types/pokemon";
-import { LoadMore } from "./load-more";
+import { GridSkeleton, StageSkeleton } from "./skeletons";
 import { ViewToggle } from "./view-toggle";
+
+/*
+ * The two browsing modes are mutually exclusive — nobody sees both — so neither
+ * belongs in the entry chunk. Splitting them also pulls their heavy dependencies
+ * with them: the virtualiser and `react-infinite-scroll-component` now only load
+ * for the reader who actually opens the grid.
+ *
+ * `ssr` stays on so the first paint and the crawler still get real markup.
+ */
+const StageView = dynamic(() => import("@/features/stage/stage-view").then((m) => m.StageView));
+
+const GridView = dynamic(() => import("./grid-view").then((m) => m.GridView), {
+  loading: () => <GridSkeleton />,
+});
 
 export function Explorer() {
   const params = useExplorerParams();
   const hydrated = useHydrated();
 
   const favorites = useUiStore((state) => state.favorites);
-  const autoLoad = useUiStore((state) => state.autoLoad);
-  const setAutoLoad = useUiStore((state) => state.setAutoLoad);
 
   const feed = usePokemonFeed({
     query: params.query,
@@ -58,31 +67,30 @@ export function Explorer() {
       {/* ---------------------------------------------------------- toolbar */}
       <div className="sticky top-18 z-30 border-b border-line bg-canvas/80 backdrop-blur-xl">
         <div className="mx-auto max-w-[100rem] px-4 sm:px-6 lg:px-10">
-          <div className="flex flex-wrap items-center gap-2 py-3.5 sm:gap-3">
-            <div className="min-w-0 basis-full sm:max-w-sm sm:flex-1 sm:basis-auto">
-              <SearchBar
-                value={params.query}
-                onChange={params.setQuery}
-                search={params.searchString}
-              />
-            </div>
+          {/*
+            Two rows on mobile, one on desktop. `sm:contents` dissolves each
+            grouping wrapper at the breakpoint so its children join the parent
+            flex row directly — which is what lets the same markup be
+            "search + view / type + sort + favourites" stacked on a phone and a
+            single ordered row on a laptop, with no duplicated JSX.
+          */}
+          <div className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:gap-3 sm:py-3.5">
+            {/* Mobile row 1: search, with the two mode controls pinned right. */}
+            <div className="flex items-center gap-2 sm:contents">
+              <div className="min-w-0 flex-1 sm:order-1 sm:max-w-sm">
+                <SearchBar
+                  value={params.query}
+                  onChange={params.setQuery}
+                  search={params.searchString}
+                />
+              </div>
 
-            <div className="flex shrink-0 items-center gap-2">
-              <TypeFilterMenu
-                selected={params.types}
-                onToggle={params.toggleType}
-                onClear={params.clearTypes}
-              />
-              <SortSelect value={params.sort} onChange={params.setSort} />
-            </div>
-
-            <div className="flex shrink-0 items-center gap-2 sm:ml-auto">
               <button
                 type="button"
                 aria-pressed={params.favoritesOnly}
                 onClick={() => params.setFavoritesOnly(!params.favoritesOnly)}
                 className={cn(
-                  "inline-flex h-11 items-center gap-2 rounded-(--radius-control) border border-transparent px-3.5 text-sm font-medium transition-colors duration-200",
+                  "inline-flex h-11 shrink-0 items-center gap-2 rounded-(--radius-control) border border-transparent px-3.5 text-sm font-medium transition-colors duration-200 sm:order-4 sm:ml-auto",
                   // A tinted, outlined "on" state rather than a solid fill: it
                   // matches how an active type reads, and a saturated block of
                   // brand red is far too loud for a toggle sitting in a toolbar.
@@ -98,9 +106,24 @@ export function Explorer() {
                 )}
               </button>
 
-              <span aria-hidden className="hidden h-6 w-px bg-line sm:block" />
+              <div className="shrink-0 sm:order-5">
+                <ViewToggle value={params.view} onChange={params.setView} />
+              </div>
+            </div>
 
-              <ViewToggle value={params.view} onChange={params.setView} />
+            {/* Mobile row 2: the two filters, splitting the width evenly. */}
+            <div className="flex items-center gap-2 sm:contents">
+              <TypeFilterMenu
+                className="min-w-0 flex-1 justify-between sm:order-2 sm:flex-none sm:justify-start"
+                selected={params.types}
+                onToggle={params.toggleType}
+                onClear={params.clearTypes}
+              />
+              <SortSelect
+                className="min-w-0 flex-1 sm:order-3 sm:w-54 sm:flex-none"
+                value={params.sort}
+                onChange={params.setSort}
+              />
             </div>
           </div>
         </div>
@@ -120,69 +143,14 @@ export function Explorer() {
           <StageView feed={feed} search={params.searchString} />
         )
       ) : (
-        <main
-          id="content"
-          className="mx-auto w-full max-w-[100rem] px-4 pb-24 pt-6 sm:px-6 sm:pt-7 lg:px-10 lg:pt-9"
-        >
-          <div className="mb-5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-            <h1 aria-live="polite" className="text-sm text-ink-muted">
-              {feed.isPending ? (
-                <span className="inline-flex items-center gap-2">
-                  <Loader2 className="size-3.5 animate-spin" aria-hidden />
-                  Loading the Pokédex…
-                </span>
-              ) : (
-                <>
-                  <span className="tabular font-semibold text-ink">
-                    {formatCount(feed.totalCount)}
-                  </span>{" "}
-                  Pokémon
-                  {describeFilters(params.types, params.query)}
-                </>
-              )}
-            </h1>
-
-            {(feed.partialSortNote || feed.isHydratingSort) && (
-              <p className="text-xs text-ink-faint">
-                {feed.isHydratingSort ? "Fetching stats to sort…" : feed.partialSortNote}
-              </p>
-            )}
-          </div>
-
-          {feed.isPending ? (
-            <CardSkeletonGrid count={12} />
-          ) : isEmpty ? (
-            emptyState
-          ) : (
-            <>
-              {/*
-                The wrapper is unconditional — toggling auto-load only flips
-                `hasMore`. Swapping the grid in and out of a parent instead would
-                remount it, throwing away scroll position and the virtualiser's
-                measurements every time the user changed their mind.
-              */}
-              <InfiniteScroll
-                dataLength={feed.items.length}
-                next={feed.loadMore}
-                hasMore={autoLoad && feed.hasMore}
-                scrollThreshold={0.8}
-                style={{ overflow: "visible" }}
-                loader={<AutoLoadIndicator />}
-              >
-                <PokemonGrid items={feed.items} search={params.searchString} />
-              </InfiniteScroll>
-
-              <LoadMore
-                hasMore={feed.hasMore}
-                remaining={feed.remaining}
-                total={feed.totalCount}
-                autoLoad={autoLoad}
-                onLoadMore={feed.loadMore}
-                onAutoLoadChange={setAutoLoad}
-              />
-            </>
-          )}
-        </main>
+        <GridView
+          feed={feed}
+          search={params.searchString}
+          types={params.types}
+          query={params.query}
+          isEmpty={isEmpty}
+          emptyState={emptyState}
+        />
       )}
 
       {/* The spotlight has no visible result count, so screen readers get one. */}
@@ -204,48 +172,6 @@ function Shell({ children }: { children: React.ReactNode }) {
     <main id="content" className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6">
       {children}
     </main>
-  );
-}
-
-/** Mirrors the spotlight panel so nothing jumps when the first page lands. */
-function StageSkeleton() {
-  return (
-    <div className="mx-auto w-full max-w-[100rem] px-3 py-4 sm:px-5 sm:py-5 lg:px-8 lg:py-8">
-      <div className="rounded-4xl border border-line bg-canvas-muted/60 px-5 pb-8 pt-10 sm:px-8 sm:pt-12 lg:px-12 lg:pb-12">
-        <div className="grid items-end gap-10 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:gap-12">
-          <div>
-            <div className="-mb-14 flex justify-center sm:-mb-20 lg:justify-start lg:pl-6">
-              <div className="shimmer size-[clamp(11rem,24vw,19rem)] rounded-full" />
-            </div>
-            <div className="shimmer h-64 rounded-[1.75rem]" />
-          </div>
-
-          <div className="flex flex-col gap-8 lg:gap-12">
-            <div className="grid gap-5 sm:grid-cols-[1.05fr_1fr] sm:gap-8">
-              <div className="space-y-3">
-                <div className="shimmer h-4 w-24 rounded-full" />
-                <div className="shimmer h-20 w-full rounded-2xl" />
-              </div>
-              <div className="shimmer h-16 rounded-2xl" />
-            </div>
-            <div className="flex gap-4 pt-11">
-              {[0, 1, 2, 3, 4].map((slot) => (
-                <div key={slot} className="shimmer h-43 w-37 shrink-0 rounded-card" />
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function AutoLoadIndicator() {
-  return (
-    <p className="flex items-center justify-center gap-2 py-8 text-sm text-ink-faint">
-      <Loader2 className="size-4 animate-spin" aria-hidden />
-      Loading more Pokémon…
-    </p>
   );
 }
 

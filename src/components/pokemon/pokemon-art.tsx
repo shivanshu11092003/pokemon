@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { cn } from "@/lib/utils/cn";
 import { officialArtworkUrl, pixelSpriteUrl } from "@/lib/utils/sprites";
 
@@ -19,7 +19,13 @@ interface PokemonArtProps {
  * list endpoint. The box is a fixed square regardless of load state, which is what
  * keeps cumulative layout shift at zero as a page of cards streams in.
  */
-export function PokemonArt({ id, name, size, priority = false, className }: PokemonArtProps) {
+export const PokemonArt = memo(function PokemonArt({
+  id,
+  name,
+  size,
+  priority = false,
+  className,
+}: PokemonArtProps) {
   const [failed, setFailed] = useState(false);
 
   return (
@@ -41,4 +47,4 @@ export function PokemonArt({ id, name, size, priority = false, className }: Poke
       draggable={false}
     />
   );
-}
+});

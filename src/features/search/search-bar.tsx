@@ -147,7 +147,7 @@ export function SearchBar({ value, onChange, search }: SearchBarProps) {
           onBlur={() => window.setTimeout(() => setIsOpen(false), 120)}
           onKeyDown={onKeyDown}
           className={cn(
-            "raised h-11 w-full rounded-(--radius-control) border border-line bg-surface pl-10 pr-16 text-[14px] text-ink",
+            "raised h-11 w-full rounded-(--radius-control) border border-line bg-surface pl-10 pr-3 text-[14px] sm:pr-16 text-ink",
             "transition-colors duration-200 placeholder:text-ink-faint hover:border-line-strong focus:border-line-strong",
             "[&::-webkit-search-cancel-button]:hidden",
           )}

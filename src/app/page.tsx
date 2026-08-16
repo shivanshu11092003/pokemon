@@ -1,18 +1,20 @@
 import { Suspense } from "react";
-import { CardSkeletonGrid } from "@/components/pokemon/card-skeleton";
 import { Explorer } from "@/features/explorer/explorer";
+import { GridSkeleton, StageSkeleton } from "@/features/explorer/skeletons";
 
-export default function HomePage() {
+interface HomePageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function HomePage({ searchParams }: HomePageProps) {
+  // `useSearchParams` inside Explorer opts that subtree into client rendering, so
+  // this boundary is what the visitor actually sees first. Reading `view` here
+  // means the placeholder matches the mode being loaded — showing a grid of card
+  // skeletons and then resolving into the spotlight was a jarring bait and switch.
+  const { view } = await searchParams;
+
   return (
-    // `useSearchParams` inside Explorer opts this subtree into client rendering;
-    // the boundary keeps the shell static and streams the grid in.
-    <Suspense
-      fallback={
-        <div className="mx-auto max-w-[100rem] px-4 py-16 sm:px-6 lg:px-10">
-          <CardSkeletonGrid count={12} />
-        </div>
-      }
-    >
+    <Suspense fallback={view === "grid" ? <GridSkeleton /> : <StageSkeleton />}>
       <Explorer />
     </Suspense>
   );

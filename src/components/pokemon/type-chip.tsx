@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { TYPE_META, typeStyle } from "@/lib/pokemon/type-meta";
 import { cn } from "@/lib/utils/cn";
 import type { PokemonTypeName } from "@/types/pokemon";
@@ -8,7 +9,7 @@ interface TypeChipProps {
   className?: string;
 }
 
-export function TypeChip({ type, size = "sm", className }: TypeChipProps) {
+export const TypeChip = memo(function TypeChip({ type, size = "sm", className }: TypeChipProps) {
   const { label, Icon } = TYPE_META[type];
 
   return (
@@ -24,4 +25,4 @@ export function TypeChip({ type, size = "sm", className }: TypeChipProps) {
       {label}
     </span>
   );
-}
+});

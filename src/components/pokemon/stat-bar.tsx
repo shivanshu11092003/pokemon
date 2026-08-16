@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
+import { memo } from "react";
 import { formatStatLabel } from "@/lib/utils/format";
 
 /** The highest base stat in the games (Blissey's HP) — the scale every bar shares. */
@@ -12,7 +13,7 @@ interface StatBarProps {
   index: number;
 }
 
-export function StatBar({ statKey, value, index }: StatBarProps) {
+export const StatBar = memo(function StatBar({ statKey, value, index }: StatBarProps) {
   const reducedMotion = useReducedMotion();
   const percentage = Math.min((value / MAX_BASE_STAT) * 100, 100);
 
@@ -40,4 +41,4 @@ export function StatBar({ statKey, value, index }: StatBarProps) {
       <span className="tabular text-right text-sm font-semibold text-ink">{value}</span>
     </div>
   );
-}
+});

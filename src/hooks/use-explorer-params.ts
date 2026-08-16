@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useTransition } from "react";
 import { parseSortKey, type SortKey } from "@/lib/pokemon/sort";
 import { ALL_TYPES, parseTypeNames } from "@/lib/pokemon/type-meta";
 import type { PokemonTypeName } from "@/types/pokemon";
@@ -24,6 +24,8 @@ export interface ExplorerParamsApi extends ExplorerParams {
   /** The canonical query string for the current view — appended to every card link. */
   searchString: string;
   isFiltered: boolean;
+  /** True while a filter change is being applied off the main interaction. */
+  isPending: boolean;
   setQuery: (value: string) => void;
   toggleType: (type: PokemonTypeName) => void;
   clearTypes: () => void;
@@ -61,6 +63,7 @@ function serialise(params: ExplorerParams): string {
 export function useExplorerParams(): ExplorerParamsApi {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
   const current = useMemo(
     () => readExplorerParams(new URLSearchParams(searchParams.toString())),
@@ -70,7 +73,13 @@ export function useExplorerParams(): ExplorerParamsApi {
   const commit = useCallback(
     (next: ExplorerParams) => {
       const queryString = serialise(next);
-      router.replace(queryString ? `/?${queryString}` : "/", { scroll: false });
+      // Marked non-urgent: re-filtering 1,025 entries and re-rendering the feed is
+      // the expensive part of a keystroke or a type change. Inside a transition
+      // React keeps the input responsive and paints the result when it is ready,
+      // instead of blocking on the way through.
+      startTransition(() => {
+        router.replace(queryString ? `/?${queryString}` : "/", { scroll: false });
+      });
     },
     [router],
   );
@@ -124,6 +133,7 @@ export function useExplorerParams(): ExplorerParamsApi {
   return {
     ...current,
     searchString,
+    isPending,
     isFiltered: current.query !== "" || current.types.length > 0 || current.favoritesOnly,
     setQuery,
     toggleType,

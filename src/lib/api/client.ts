@@ -2,23 +2,41 @@ import { ApiError } from "./errors";
 
 export const POKEAPI_BASE_URL = "https://pokeapi.co/api/v2";
 
+/** Nothing should hang forever on a flaky connection. */
+const REQUEST_TIMEOUT_MS = 15_000;
+
 /**
  * The one and only place this app calls `fetch`. Everything else goes through
- * `lib/api/pokemon.ts`, which goes through here.
+ * `lib/api/pokemon.ts`, which goes through here — no component, hook or route
+ * ever touches the network directly.
+ *
+ * Using the platform `fetch` rather than a client library is what lets Next
+ * deduplicate and cache these requests on the server: two callers asking for the
+ * same Pokémon during one render share a single round trip.
  */
 export async function apiFetch<T>(endpoint: string, signal?: AbortSignal): Promise<T> {
   const url = endpoint.startsWith("http") ? endpoint : `${POKEAPI_BASE_URL}${endpoint}`;
 
+  // A caller's own abort still has to win, so the timeout is combined with it
+  // rather than replacing it.
+  const timeout = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+  const combined = signal ? AbortSignal.any([signal, timeout]) : timeout;
+
   let response: Response;
   try {
     response = await fetch(url, {
-      signal,
+      signal: combined,
       headers: { Accept: "application/json" },
       // PokéAPI data is effectively immutable; let the platform cache hard.
       cache: "force-cache",
     });
   } catch (cause) {
-    if (cause instanceof DOMException && cause.name === "AbortError") throw cause;
+    // A cancellation is not a failure: TanStack Query recognises an abort and
+    // drops the result quietly, whereas an ApiError would surface it as an error.
+    if (signal?.aborted) throw cause;
+    if (cause instanceof DOMException && cause.name === "TimeoutError") {
+      throw new ApiError(0, endpoint, "The request timed out");
+    }
     throw new ApiError(0, endpoint, "Network request failed");
   }
 

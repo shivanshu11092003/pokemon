@@ -1,8 +1,7 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils/cn";
 import type { MoveLearnMethod, PokemonMove } from "@/types/pokemon";
 
@@ -18,8 +17,24 @@ const METHOD_LABELS: Record<MoveLearnMethod, string> = {
 
 const METHOD_ORDER: MoveLearnMethod[] = ["level-up", "machine", "egg", "tutor", "other"];
 
+/**
+ * Moves grouped by how they are learned, each group expanding on its own.
+ *
+ * A single control expanding every group at once meant opening "Egg moves" also
+ * dumped a hundred TMs on the page. The "+N more" chip that already sat at the end
+ * of a truncated group is the natural place for that group's control, so it is
+ * the button rather than a label sitting next to one.
+ */
 export function MovesSection({ moves }: { moves: PokemonMove[] }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState<ReadonlySet<MoveLearnMethod>>(new Set());
+
+  const toggle = useCallback((method: MoveLearnMethod) => {
+    setExpanded((current) => {
+      const next = new Set(current);
+      if (!next.delete(method)) next.add(method);
+      return next;
+    });
+  }, []);
 
   if (moves.length === 0) {
     return <p className="text-sm text-ink-muted">No move data available.</p>;
@@ -33,13 +48,15 @@ export function MovesSection({ moves }: { moves: PokemonMove[] }) {
   return (
     <div className="space-y-5">
       {grouped.map((group) => {
-        const visible = expanded ? group.moves : group.moves.slice(0, INITIAL_VISIBLE);
+        const isExpanded = expanded.has(group.method);
+        const visible = isExpanded ? group.moves : group.moves.slice(0, INITIAL_VISIBLE);
         const hidden = group.moves.length - visible.length;
+        const label = METHOD_LABELS[group.method];
 
         return (
           <section key={group.method}>
             <h4 className="mb-2.5 flex items-baseline gap-2 text-xs font-semibold uppercase tracking-wider text-ink-faint">
-              {METHOD_LABELS[group.method]}
+              {label}
               <span className="tabular font-normal normal-case tracking-normal">
                 {group.moves.length}
               </span>
@@ -57,22 +74,40 @@ export function MovesSection({ moves }: { moves: PokemonMove[] }) {
                   )}
                 </li>
               ))}
-              {hidden > 0 && (
-                <li className="tabular inline-flex items-center rounded-lg border border-dashed border-line px-2.5 py-1.5 text-[13px] text-ink-faint">
-                  +{hidden} more
+
+              {(hidden > 0 || isExpanded) && (
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => toggle(group.method)}
+                    aria-expanded={isExpanded}
+                    // Names the group it controls, so a screen reader hearing five
+                    // of these in a row can tell them apart.
+                    aria-label={
+                      isExpanded
+                        ? `Show fewer moves — ${label}`
+                        : `Show ${hidden} more moves — ${label}`
+                    }
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-lg border border-dashed border-line px-2.5 py-1.5 text-[13px] font-medium text-ink-muted",
+                      "transition-colors duration-150 hover:border-line-strong hover:bg-canvas-muted hover:text-ink",
+                    )}
+                  >
+                    <span className="tabular">{isExpanded ? "Show less" : `+${hidden} more`}</span>
+                    <ChevronDown
+                      aria-hidden
+                      className={cn(
+                        "size-3.5 transition-transform duration-200",
+                        isExpanded && "rotate-180",
+                      )}
+                    />
+                  </button>
                 </li>
               )}
             </ul>
           </section>
         );
       })}
-
-      {moves.length > INITIAL_VISIBLE && (
-        <Button variant="ghost" size="sm" onClick={() => setExpanded((value) => !value)}>
-          {expanded ? "Show fewer moves" : `Show all ${moves.length} moves`}
-          <ChevronDown className={cn("transition-transform", expanded && "rotate-180")} />
-        </Button>
-      )}
     </div>
   );
 }

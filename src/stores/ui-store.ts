@@ -13,23 +13,19 @@ export const MAX_COMPARE = 2;
 interface UiState {
   favorites: number[];
   compare: number[];
-  autoLoad: boolean;
   toggleFavorite: (id: number) => void;
   toggleCompare: (id: number) => void;
   clearCompare: () => void;
-  setAutoLoad: (value: boolean) => void;
 }
 
 /** The slice that actually reaches localStorage — see `partialize` below. */
-type PersistedUiState = Pick<UiState, "favorites" | "compare" | "autoLoad">;
+type PersistedUiState = Pick<UiState, "favorites" | "compare">;
 
 export const useUiStore = create<UiState>()(
   persist(
     (set) => ({
       favorites: [],
       compare: [],
-      /** Infinite scroll is the default; the Load More button is the opt-out. */
-      autoLoad: true,
 
       toggleFavorite: (id) =>
         set((state) => ({
@@ -49,26 +45,20 @@ export const useUiStore = create<UiState>()(
         }),
 
       clearCompare: () => set({ compare: [] }),
-      setAutoLoad: (value) => set({ autoLoad: value }),
     }),
     {
       name: "pokedex-explorer",
-      version: 2,
-      // v1 shipped with the Load More button as the default. Drop the stored
-      // value on upgrade so returning visitors get infinite scroll too; their
-      // favourites and comparison slate carry over untouched.
-      migrate: (persisted, version) => {
+      version: 3,
+      // v3 dropped `autoLoad`: paging is infinite scroll, full stop, so the
+      // preference no longer exists. Favourites and the comparison slate carry
+      // over untouched.
+      migrate: (persisted) => {
         const state = (persisted ?? {}) as Partial<PersistedUiState>;
-        return {
-          favorites: state.favorites ?? [],
-          compare: state.compare ?? [],
-          autoLoad: version < 2 ? true : (state.autoLoad ?? true),
-        };
+        return { favorites: state.favorites ?? [], compare: state.compare ?? [] };
       },
       partialize: (state) => ({
         favorites: state.favorites,
         compare: state.compare,
-        autoLoad: state.autoLoad,
       }),
     },
   ),
