@@ -182,6 +182,18 @@ body {
   box-shadow: 0 4px 14px color-mix(in oklab, var(--type-color) 38%, transparent);
 }
 
+/*
+ * Text set in a Pokémon's own type colour — the trick the reference uses to make
+ * each character's name feel like it belongs to them. Same derivation as the
+ * chip's ink, so it clears contrast in both themes without per-type tuning.
+ */
+.type-ink {
+  color: light-dark(
+    color-mix(in oklab, var(--type-color) 62%, black),
+    color-mix(in oklab, var(--type-color) 45%, white)
+  );
+}
+
 /* Card surface picks up the faintest wash of its primary type. */
 .type-wash {
   background:

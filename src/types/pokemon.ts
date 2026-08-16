@@ -130,3 +130,16 @@ export interface PokemonIndexEntry {
   name: string;
   displayName: string;
 }
+
+export interface SpeciesResponse {
+  genera: Array<{ genus: string; language: NamedResource }>;
+  flavor_text_entries: Array<{ flavor_text: string; language: NamedResource }>;
+}
+
+/** The prose half of a Pokédex entry: what it is, and what the games say about it. */
+export interface PokemonSpecies {
+  /** e.g. "Seed Pokémon". */
+  genus: string;
+  /** The classic Pokédex blurb, cleaned of the games' line-break control codes. */
+  flavorText: string;
+}

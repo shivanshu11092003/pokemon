@@ -3,6 +3,7 @@ import {
   fetchPokemon,
   fetchPokemonBatch,
   fetchPokemonIndex,
+  fetchPokemonSpecies,
   fetchTypeMembers,
 } from "@/lib/api/pokemon";
 import type { Pokemon, PokemonTypeName } from "@/types/pokemon";
@@ -26,6 +27,14 @@ export const pokemonDetailOptions = (idOrName: string | number | null) =>
     queryKey: queryKeys.detail(idOrName ?? "none"),
     queryFn: ({ signal }) => fetchPokemon(idOrName as string | number, signal),
     enabled: idOrName !== null && idOrName !== "",
+    ...IMMUTABLE,
+  });
+
+export const pokemonSpeciesOptions = (id: number | null) =>
+  queryOptions({
+    queryKey: queryKeys.species(id ?? 0),
+    queryFn: ({ signal }) => fetchPokemonSpecies(id as number, signal),
+    enabled: id !== null,
     ...IMMUTABLE,
   });
 

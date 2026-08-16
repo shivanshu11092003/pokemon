@@ -12,9 +12,11 @@ transitions, full keyboard support and a light/dark design system.
 
 **Two ways to browse, one toggle apart**
 
-- **Spotlight** (default) — one Pokémon presented full-bleed: oversized display type, key stats, and
-  an ambient backdrop drawn from its own type colours, with a horizontally virtualised character-select
-  rail underneath. Arrow keys walk the dex; the backdrop, artwork and name all crossfade in step.
+- **Spotlight** (default) — a framed poster panel: the featured Pokémon's artwork breaks out above a
+  card carrying its name in its own type colour, its genus, its real Pokédex entry and its headline
+  stats, beside a horizontally virtualised character-select carousel whose cards the artwork also
+  overhangs. The ambient backdrop is drawn from the featured Pokémon's type colours and crossfades on
+  every selection change. Arrow keys walk the dex.
 - **Grid** — the classic card layout: dex number, artwork, name and types on a surface washed with
   the primary type's colour, virtualised so all 1,025 entries scroll at 60fps.
 - The choice lives in the URL (`?view=grid`), so a shared link opens the way you left it.
@@ -101,6 +103,7 @@ rebuilt as pure CSS so it costs no JavaScript.
 |---|---|
 | `GET /pokemon?limit=100000&offset=0` | The name index — every name and id in one cached request |
 | `GET /pokemon/{name}` | Full detail record for a card, modal or page |
+| `GET /pokemon-species/{id}` | Genus and flavour text — the actual Pokédex prose, fetched only for the spotlight |
 | `GET /type/{type}` | Type membership lists, intersected client-side |
 
 Artwork comes from the PokéAPI sprites CDN, addressed by dex id.
@@ -135,7 +138,7 @@ pnpm format     # biome check --write
 ```
 src/
 ├── app/                          # Next.js App Router
-│   ├── layout.tsx                # shell, providers, pre-paint theme script
+│   ├── layout.tsx                # shell, providers, theme from cookie
 │   ├── page.tsx                  # the explorer
 │   ├── @modal/                   # parallel slot
 │   │   └── (.)pokemon/[name]/    # intercepted detail → modal over the grid
@@ -150,7 +153,7 @@ src/
 │
 ├── features/                     # vertical slices
 │   ├── explorer/                 # page composition, view toggle, load-more
-│   ├── stage/                    # spotlight: backdrop, featured panel, rail
+│   ├── stage/                    # spotlight: backdrop, featured card, carousel
 │   ├── search/  filters/  compare/
 │
 ├── hooks/                        # feed, detail, URL params, column count, keyboard nav
@@ -224,6 +227,12 @@ No pre-paint script, nothing mutating the DOM behind React's back, nothing to su
 across all four combinations (system/light, system/dark, forced-dark on a light OS, forced-light on
 a dark OS) with zero console warnings. The one cost is that reading a cookie opts the root layout
 into dynamic rendering — acceptable here, since the shell fetches nothing on the server anyway.
+
+**Making artwork escape its frame.** The layout's signature move is the character overhanging the
+top of its card. Inside a horizontally scrolling carousel that fights you: `overflow-x: auto` clips
+both axes, so anything rising above the card is simply cut off. The fix is to give the scroll box
+top padding equal to the overhang and position the artwork into it, rather than reaching for
+`overflow: visible` — which would have disabled the scrolling the carousel exists for.
 
 **Motion's inline styles quietly beat Tailwind's classes.** Two bugs in the spotlight had the same
 root cause. The giant ghosted dex number behind the artwork rendered at full opacity instead of 5%,

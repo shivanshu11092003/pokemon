@@ -8,7 +8,9 @@ import {
   type PokemonIndexEntry,
   type PokemonListResponse,
   type PokemonMove,
+  type PokemonSpecies,
   type PokemonTypeName,
+  type SpeciesResponse,
   STAT_KEYS,
   type StatBlock,
   type StatKey,
@@ -143,6 +145,37 @@ export async function fetchPokemonBatch(
   });
 
   return settled.filter((entry): entry is Pokemon => entry !== null);
+}
+
+/* --------------------------------------------------------------- species */
+
+/**
+ * The species record carries the flavour text — the actual Pokédex prose. It is a
+ * separate request from `/pokemon/{id}`, so it is fetched only for the Pokémon
+ * currently in the spotlight rather than for every card.
+ */
+export async function fetchPokemonSpecies(
+  id: number,
+  signal?: AbortSignal,
+): Promise<PokemonSpecies | null> {
+  // Alternate forms have no species of their own.
+  if (id > MAX_NATIONAL_DEX_ID) return null;
+
+  const data = await apiFetch<SpeciesResponse>(`/pokemon-species/${id}`, signal);
+
+  const genus = data.genera.find((entry) => entry.language.name === "en")?.genus ?? "";
+  const flavor = data.flavor_text_entries.find((entry) => entry.language.name === "en");
+
+  return {
+    genus,
+    flavorText: (flavor?.flavor_text ?? "")
+      // The games encode line breaks as \n and page breaks as \f; both are noise here.
+      .replace(/[\n\f\r]+/g, " ")
+      // Older entries shout the brand in the games' own casing ("POKéMON").
+      .replace(/POKéMON/gi, "Pokémon")
+      .replace(/\s{2,}/g, " ")
+      .trim(),
+  };
 }
 
 /* ------------------------------------------------------------------ type */

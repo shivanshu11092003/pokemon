@@ -217,21 +217,34 @@ function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** Mirrors the spotlight layout so nothing jumps when the first page lands. */
+/** Mirrors the spotlight panel so nothing jumps when the first page lands. */
 function StageSkeleton() {
   return (
-    <div className="mx-auto grid w-full max-w-[100rem] items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:px-10">
-      <div className="order-2 space-y-6 lg:order-1">
-        <div className="shimmer h-4 w-32 rounded-full" />
-        <div className="shimmer h-24 w-full max-w-md rounded-2xl" />
-        <div className="max-w-sm space-y-3">
-          {["hp", "attack", "defense", "speed"].map((key) => (
-            <div key={key} className="shimmer h-4 w-full rounded-full" />
-          ))}
+    <div className="mx-auto w-full max-w-[100rem] px-3 pb-6 sm:px-5 lg:px-8">
+      <div className="rounded-4xl border border-line bg-canvas-muted/60 px-5 pb-8 pt-10 sm:px-8 sm:pt-12 lg:px-12 lg:pb-12">
+        <div className="grid items-end gap-10 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:gap-12">
+          <div>
+            <div className="-mb-14 flex justify-center sm:-mb-20 lg:justify-start lg:pl-6">
+              <div className="shimmer size-[clamp(11rem,24vw,19rem)] rounded-full" />
+            </div>
+            <div className="shimmer h-64 rounded-[1.75rem]" />
+          </div>
+
+          <div className="flex flex-col gap-8 lg:gap-12">
+            <div className="grid gap-5 sm:grid-cols-[1.05fr_1fr] sm:gap-8">
+              <div className="space-y-3">
+                <div className="shimmer h-4 w-24 rounded-full" />
+                <div className="shimmer h-20 w-full rounded-2xl" />
+              </div>
+              <div className="shimmer h-16 rounded-2xl" />
+            </div>
+            <div className="flex gap-4 pt-11">
+              {[0, 1, 2, 3, 4].map((slot) => (
+                <div key={slot} className="shimmer h-43 w-37 shrink-0 rounded-card" />
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
-      <div className="order-1 flex justify-center lg:order-2">
-        <div className="shimmer size-[clamp(13rem,32vw,26rem)] rounded-full" />
       </div>
     </div>
   );
