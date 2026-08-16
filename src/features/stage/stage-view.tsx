@@ -85,7 +85,7 @@ export function StageView({ feed, search }: StageViewProps) {
             <header className="grid gap-5 sm:grid-cols-[1.05fr_1fr] sm:items-start sm:gap-8">
               <div>
                 <p className="text-sm font-bold tracking-tight text-brand-accent">Go explore</p>
-                <h1 className="mt-2 text-[clamp(2.25rem,4.6vw,3.5rem)] font-bold leading-[0.95] tracking-[-0.035em] text-ink">
+                <h1 className="mt-2 font-logo text-[clamp(1.9rem,4vw,3rem)] leading-[1.04] tracking-[0.01em] text-ink">
                   The world
                   <br />
                   of Pokémon

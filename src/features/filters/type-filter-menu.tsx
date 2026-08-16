@@ -129,7 +129,9 @@ export function TypeFilterMenu({ selected, onToggle, onClear, className }: TypeF
               >
                 <Icon className="size-4 shrink-0 text-(--type-color)" aria-hidden />
                 <span className="truncate">{label}</span>
-                {isSelected && <Check className="ml-auto size-3.5 shrink-0" aria-hidden />}
+                {isSelected && (
+                  <X className="ml-auto size-3.5 shrink-0 text-ink-muted" aria-hidden />
+                )}
               </button>
             );
           })}

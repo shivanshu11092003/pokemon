@@ -8,7 +8,6 @@ import { PokemonArt } from "@/components/pokemon/pokemon-art";
 import { Button } from "@/components/ui/button";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { pokemonDetailOptions, pokemonIndexOptions } from "@/lib/query/options";
-import { cn } from "@/lib/utils/cn";
 import { MAX_COMPARE, useUiStore } from "@/stores/ui-store";
 import type { Pokemon } from "@/types/pokemon";
 import { CompareDialog } from "./compare-dialog";
@@ -53,7 +52,10 @@ export function CompareTray() {
                 {compare.map((id, position) => {
                   const pokemon = selected.find((entry) => entry.id === id);
                   return (
-                    <div key={id} className="flex min-w-0 flex-1 items-center justify-between gap-1.5 sm:flex-initial">
+                    <div
+                      key={id}
+                      className="flex min-w-0 flex-1 items-center justify-between gap-1.5 sm:flex-initial"
+                    >
                       {position > 0 && (
                         <span className="tabular shrink-0 rounded-full bg-brand/12 px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-brand-accent">
                           VS
@@ -90,7 +92,12 @@ export function CompareTray() {
               </ul>
 
               <div className="flex items-center justify-end gap-2 border-t border-line/40 pt-2 sm:shrink-0 sm:border-0 sm:pt-0">
-                <Button variant="ghost" size="sm" onClick={clearCompare} className="text-xs sm:text-sm">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearCompare}
+                  className="text-xs sm:text-sm"
+                >
                   Clear
                 </Button>
                 <Button

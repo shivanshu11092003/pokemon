@@ -65,7 +65,7 @@ export function Explorer() {
   return (
     <>
       {/* ---------------------------------------------------------- toolbar */}
-      <div className="sticky top-18 z-30 border-b border-line bg-canvas/80 backdrop-blur-xl">
+      <div className="sticky top-16 z-30 bg-canvas/60 backdrop-blur-md">
         <div className="mx-auto max-w-[100rem] px-4 sm:px-6 lg:px-10">
           {/*
             Two rows on mobile, one on desktop. `sm:contents` dissolves each

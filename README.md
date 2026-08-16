@@ -1,8 +1,8 @@
 # Pokédex Explorer
 
 A production-grade Pokédex built on the free [PokéAPI](https://pokeapi.co). Search, filter, sort
-and compare all 1,025 Pokémon — with a cinematic spotlight view, a virtualised grid, shared-element
-transitions, full keyboard support and a light/dark design system.
+and compare all 1,025 Pokémon — with a cinematic spotlight view, a virtualised grid, multi-type
+filtering, full keyboard support and a light/dark design system.
 
 ![Spotlight, light theme](docs/screenshots/01-spotlight-light.png)
 
@@ -20,7 +20,7 @@ UI design, loading states, error handling, responsiveness and component architec
 |---|---|---|---|
 | 1 | **Listing** — card layout with image, name, id, types, type-based styling | Two browsing modes: a Spotlight hero and a virtualised card grid. Cards carry artwork, zero-padded dex number, name and type chips on a surface washed with the primary type's colour | [`pokemon-card.tsx`](src/components/pokemon/pokemon-card.tsx), [`stage/`](src/features/stage/) |
 | 2 | **Search** by name, with a not-found state | Debounced typeahead over a cached name index; accepts names, partial names, fuzzy input and raw dex numbers. Misses get a designed empty state with edit-distance suggestions | [`search-bar.tsx`](src/features/search/search-bar.tsx), [`empty-state.tsx`](src/components/states/empty-state.tsx) |
-| 3 | **Pagination / Load More / infinite scroll** | Infinite scroll in pages of 24 — one of the three options the brief allows | [`grid-view.tsx`](src/features/explorer/grid-view.tsx), [`use-pokemon-feed.ts`](src/hooks/use-pokemon-feed.ts) |
+| 3 | **Pagination / Load More / infinite scroll** | Infinite scroll in pages of 24 — one of the three options the brief allows | [`explorer.tsx`](src/features/explorer/explorer.tsx), [`load-more.tsx`](src/features/explorer/load-more.tsx), [`use-pokemon-feed.ts`](src/hooks/use-pokemon-feed.ts) |
 | 4 | **Details** — image, name, id, types, height, weight, abilities, stats, moves | Full `/pokemon/[name]` route with all of the above plus animated stat bars, hidden-ability badges and moves grouped by learn method | [`pokemon-detail.tsx`](src/components/pokemon/pokemon-detail.tsx) |
 | 5 | **Filter by type** | A menu holding all 18 types in an even grid; selection is a union, so `Fire + Water` shows both | [`type-filter-menu.tsx`](src/features/filters/type-filter-menu.tsx) |
 | 6 | **Responsive** desktop / tablet / mobile | Verified at 360, 390, 834, 1440 and 2560px. The toolbar collapses from one row to two; the Spotlight restacks; the grid runs 1–5 columns | [`explorer.tsx`](src/features/explorer/explorer.tsx), [`use-column-count.ts`](src/hooks/use-column-count.ts) |
@@ -132,22 +132,21 @@ Nothing is owned twice. That single rule is what keeps the data layer legible.
 
 **Filtering & sorting**
 
-- Filter by one of the 18 types at a time, chosen from a menu that shows all eighteen at once in an
-  even grid — each with its own icon in its own colour. The trigger carries just a dot and the type
-  name, so the toolbar stays one calm row and the page shows one accent at a time.
+- Filter by any combination of the 18 types, chosen from a menu that shows all eighteen at once in
+  an even grid — each with its own icon in its own colour. Selection is a union: `Fire + Water`
+  shows both. Picks toggle in place while the menu stays open, and the trigger summarises the
+  selection (`Fire +2`), so the toolbar stays one calm row.
 - Sort by dex number, name, HP, Attack, Speed or base stat total.
-- Search, filters and sort all live in the URL — `/?q=char&type=fire&sort=attack` is shareable and
-  survives a refresh.
+- Search, filters and sort all live in the URL — `/?q=char&type=fire,water&sort=attack` is
+  shareable and survives a refresh.
 
 **Detail view**
 
-- Clicking a card opens `/pokemon/[name]` as a modal *over* the grid via a Next.js intercepting
-  route, so scroll position is preserved and the artwork animates from card to panel.
-- The same URL loads as a full, server-rendered page on a direct visit or refresh, with real
-  metadata for link previews.
+- Clicking a card routes to the full `/pokemon/[name]` page — a real, shareable URL that is
+  server-rendered on a direct visit or refresh, with genuine metadata for link previews.
 - Large artwork, dex number, types, height and weight (metric + imperial), abilities with hidden
   ones badged, animated base stat bars with a total, and moves grouped by learn method.
-- `←` / `→` walk the dex; `Esc` closes; the modal becomes a draggable bottom sheet under 768px.
+- `←` / `→` walk the dex without leaving the page.
 
 **Extras**
 
@@ -161,10 +160,10 @@ Nothing is owned twice. That single rule is what keeps the data layer legible.
 
 | | |
 |---|---|
-| ![Spotlight, dark theme](docs/screenshots/02-spotlight-dark.png) | ![Type menu](docs/screenshots/03-type-menu.png) |
-| ![Grid view, filtered and sorted](docs/screenshots/04-grid-view.png) | ![Detail modal](docs/screenshots/05-detail-modal.png) |
-| ![Detail page](docs/screenshots/06-detail-page.png) | ![Compare](docs/screenshots/09-compare.png) |
-| ![Empty state](docs/screenshots/08-empty.png) | <img src="docs/screenshots/07-mobile.png" width="300" alt="Mobile spotlight"> |
+| ![Spotlight, dark theme](docs/screenshots/02-spotlight-dark.png) | ![Multi-select type menu](docs/screenshots/03-type-menu.png) |
+| ![Grid view](docs/screenshots/04-grid-view.png) | ![Detail page](docs/screenshots/05-detail-page.png) |
+| ![Compare](docs/screenshots/06-compare.png) | ![Empty state](docs/screenshots/07-empty.png) |
+| <img src="docs/screenshots/08-mobile.png" width="300" alt="Mobile spotlight"> | |
 
 ---
 
@@ -172,13 +171,14 @@ Nothing is owned twice. That single rule is what keeps the data layer legible.
 
 | Concern | Choice | Why |
 |---|---|---|
-| Framework | **Next.js 16** (App Router) + **React 19** | Intercepting routes give a modal over the grid *and* a real shareable page from one route |
+| Framework | **Next.js 16** (App Router) + **React 19** | The detail route is a real server-rendered page with metadata, shared by every card link |
 | Language | **TypeScript** (strict) | No `any`, no `@ts-ignore` in the codebase |
 | Server state | **TanStack Query v5** | `queryOptions` factories, pooled batch fetches, 404-aware retries |
 | Client state | **Zustand** + `persist` | Preferences only — favourites and the comparison slate |
 | Styling | **Tailwind CSS v4** | CSS-first `@theme` tokens; no colour is hardcoded in a component |
+| Typography | **Manrope** + **Fredoka** + a Pokémon-logo replica | Manrope stays crisp at stat-number sizes; Fredoka carries the one playful headline; the logo lettering is confined to the header wordmark |
 | Components | **shadcn/ui** patterns on Radix | Hand-placed primitives in `components/ui`, owned by this repo |
-| Animation | **Motion** (`motion/react`) | Shared-element transitions, spring physics, global reduced-motion |
+| Animation | **Motion** (`motion/react`) | Entrance and hover springs, global reduced-motion |
 | Perf | `next/dynamic`, `React.memo`, `useTransition`, `optimizePackageImports` | The two browsing modes are split into their own chunks; filter changes run as non-urgent transitions |
 | Virtualisation | **TanStack Virtual** | Window virtualiser with a constant row height |
 | Infinite scroll | **react-infinite-scroll-component** | The only paging mode, wrapped around the virtualised grid |
@@ -241,11 +241,10 @@ pnpm format     # biome check --write
 ```
 src/
 ├── app/                          # Next.js App Router
-│   ├── layout.tsx                # shell, providers, theme from cookie
+│   ├── layout.tsx                # shell, providers, theme from cookie, fonts
+│   ├── fonts/                    # Pokémon logo replica (solid + outline), self-hosted
 │   ├── page.tsx                  # the explorer
-│   ├── @modal/                   # parallel slot
-│   │   └── (.)pokemon/[name]/    # intercepted detail → modal over the grid
-│   └── pokemon/[name]/           # the same URL as a full SSR page
+│   └── pokemon/[name]/           # the detail page every card opens (SSR + metadata)
 │
 ├── components/
 │   ├── ui/                       # button, skeleton, tooltip, responsive-modal
@@ -308,11 +307,13 @@ exact.
 Cached with `staleTime: Infinity`, that single call powers typeahead, exact result counts, stable
 pagination under any filter, and did-you-mean suggestions, all without another round trip.
 
-**The modal-versus-page problem.** A detail view that is only a modal isn't shareable; one that is
-only a page loses your scroll position and can't animate from the card. Next.js intercepting routes
-give both from one URL: clicking a card renders `/pokemon/[name]` into a parallel `@modal` slot while
-the grid stays mounted underneath, and loading that same URL directly renders a full server-rendered
-page. The grid staying mounted is also what makes the shared-element artwork transition possible.
+**One detail view, not two.** The app used to render details as an intercepted-route modal over the
+grid *and* as a full page — two chromes around one component, kept in sync by convention. The modal
+won on scroll preservation; the page won on everything else: shareable links that open exactly what
+the sender saw, real server-rendered metadata, browser Back that does what users expect, and one
+fewer routing mechanism to reason about. The modal is retired: every card opens the full
+`/pokemon/[name]` route, `←`/`→` walk the dex in place, and the detail component has a single
+variant instead of a `modal | page` switch.
 
 **Theming without a hydration mismatch.** The usual dark-mode recipe — a blocking inline script that
 reads `localStorage` and adds `class="dark"` to `<html>` before paint — guarantees a React hydration
@@ -343,10 +344,10 @@ rows to one.
 all eighteen types as saturated pills, permanently. Every one was individually well-chosen and the
 result still looked cheap, because eighteen competing accents on screen at once have no hierarchy —
 nothing is emphasised when everything is. The fix was to spend the colour only where it carries
-meaning: chips became neutral chrome with a small type-coloured dot, and only the *selected* type is
-allowed its full colour, tint and glow. Restricting the filter to one type at a time followed from
-the same reasoning, and it simplified the data layer too — the client-side set intersection that
-multi-select needed collapsed into a single cached membership lookup.
+meaning: chips became neutral chrome with a small type-coloured dot, and only the *selected* types
+are allowed their full colour, tint and glow. Multi-select then fell out of the data layer for free
+— each type's membership list is cached on its own, so a union of any combination costs nothing
+beyond the first fetch per type.
 
 **Making artwork escape its frame.** The layout's signature move is the character overhanging the
 top of its card. Inside a horizontally scrolling carousel that fights you: `overflow-x: auto` clips
@@ -397,11 +398,11 @@ once you combine window virtualisation with a long page, and it's worth knowing 
   make every stat sort exact and instant, retiring the bounded-pool compromise.
 - **Compare more than two.** The tray and the table are both written around a pair; three or four
   columns is mostly a layout problem.
-- **Tests.** The interaction surface — search, filter intersection, sort, favourites persistence,
-  modal routing — was verified with a Playwright script during development. That deserves to be a
+- **Tests.** The interaction surface — search, multi-type filtering, sort, favourites persistence,
+  detail routing — was verified with a Playwright script during development. That deserves to be a
   committed suite rather than a throwaway.
-- **`View Transitions`.** Once support is broad enough, the card-to-modal animation could drop
-  Motion's layout projection for the native API.
+- **`View Transitions`.** Once support is broad enough, the card-to-page navigation could hand its
+  artwork hand-off to the native API instead of a full route change.
 
 ---
 

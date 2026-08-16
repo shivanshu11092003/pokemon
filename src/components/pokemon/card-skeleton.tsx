@@ -12,7 +12,7 @@ export function CardSkeleton() {
       aria-hidden
     >
       <div className="shimmer h-[168px] shrink-0 rounded-t-[calc(var(--radius-card)-1px)]" />
-      <div className="flex flex-1 flex-col items-start px-4 pb-4 pt-7">
+      <div className="flex flex-1 flex-col items-center px-4 pb-4 pt-7">
         <div className="shimmer h-3 w-12 rounded-full" />
         <div className="shimmer mt-2 h-4 w-24 rounded-full" />
         <div className="mt-2.5 flex gap-1.5">

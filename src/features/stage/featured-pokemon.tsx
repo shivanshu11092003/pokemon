@@ -43,6 +43,18 @@ export function FeaturedPokemon({ item, href }: FeaturedPokemonProps) {
 
   return (
     <div style={typeStyle(pokemon?.types[0])} className="relative flex flex-col justify-end">
+      {/*
+        Ghost dex number. The column is bottom-anchored by design, and without
+        this the upper-left of the panel read as dead space next to a right
+        column that fills its full height.
+      */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -top-3 left-0 select-none font-display text-[clamp(4.5rem,7vw,6.75rem)] leading-none text-ink/5"
+      >
+        {formatDexNumber(item.id)}
+      </span>
+
       {/* ------------------------------------------------------------- art */}
       <div className="relative z-10 -mb-12 flex justify-center sm:-mb-16">
         <AnimatePresence mode="wait">

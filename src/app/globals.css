@@ -107,8 +107,12 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-display: var(--font-fredoka), var(--font-manrope), ui-sans-serif, sans-serif;
+  --font-logo: var(--font-pokemon), var(--font-fredoka), ui-sans-serif, sans-serif;
+  --font-logo-outline:
+    var(--font-pokemon-hollow), var(--font-fredoka), ui-sans-serif, sans-serif;
 
   --color-canvas: var(--canvas);
   --color-canvas-muted: var(--canvas-muted);
@@ -224,7 +228,7 @@ body {
   );
   color: light-dark(white, oklch(0.16 0.014 268));
   border-color: transparent;
-  box-shadow: 0 4px 14px color-mix(in oklab, var(--type-color) 38%, transparent);
+  box-shadow: none;
 }
 
 /*
@@ -248,13 +252,10 @@ body {
 }
 
 .type-pill[data-selected="true"] {
-  background: color-mix(in oklab, var(--type-color) 13%, var(--surface));
-  border-color: color-mix(in oklab, var(--type-color) 40%, transparent);
-  color: light-dark(
-    color-mix(in oklab, var(--type-color) 62%, black),
-    color-mix(in oklab, var(--type-color) 45%, white)
-  );
-  box-shadow: 0 6px 18px -6px color-mix(in oklab, var(--type-color) 55%, transparent);
+  background: var(--canvas-muted);
+  border-color: var(--line-strong);
+  color: var(--ink);
+  box-shadow: none;
 }
 
 .type-dot {
@@ -388,7 +389,9 @@ body {
 .rail {
   scrollbar-width: none;
   -ms-overflow-style: none;
-  mask-image: linear-gradient(to right, black calc(100% - 4rem), transparent 100%);
+  /* The fade must finish *before* the panel edge, or the last card hard-clips
+     against the rounded frame while its neighbours fade — a lopsided look. */
+  mask-image: linear-gradient(to right, black calc(100% - 7rem), transparent 100%);
 }
 
 .rail::-webkit-scrollbar {

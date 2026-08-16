@@ -3,15 +3,8 @@ import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 export function AppHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-canvas/80 backdrop-blur-xl">
-      {/* Hairline of light along the very top — the detail that stops a flat bar
-          from reading as an unstyled rectangle. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-line-strong to-transparent"
-      />
-
-      <div className="mx-auto flex h-18 max-w-[100rem] items-center justify-between gap-4 px-4 sm:px-6 lg:px-10">
+    <header className="sticky top-0 z-40 bg-canvas/60 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-[100rem] items-center justify-between gap-4 px-4 sm:px-6 lg:px-10">
         <Link
           href="/"
           className="group flex items-center gap-3 rounded-xl outline-none"
@@ -20,7 +13,17 @@ export function AppHeader() {
           <PokeballMark />
 
           <span className="flex flex-col leading-none">
-            <span className="text-[19px] font-semibold tracking-[-0.03em] text-ink">Pokédex</span>
+            {/*
+              The logo treatment: Hollow supplies the outline, Solid the fill,
+              stacked in the franchise's yellow-on-blue. Both colours are fixed
+              brand values, so the wordmark reads identically in either theme.
+            */}
+            <span className="relative font-logo text-[19px] tracking-[0.02em]">
+              <span aria-hidden className="font-logo-outline absolute inset-0 text-[#2a75bb]">
+                Pokédex
+              </span>
+              <span className="relative text-[#ffcb05]">Pokédex</span>
+            </span>
             <span className="mt-1 text-[10px] font-medium uppercase tracking-[0.24em] text-ink-faint">
               Explorer
             </span>

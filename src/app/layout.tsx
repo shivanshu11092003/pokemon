@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fredoka, Geist_Mono, Manrope } from "next/font/google";
+import localFont from "next/font/local";
 import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 import { AppHeader } from "@/components/layout/app-header";
@@ -9,8 +10,25 @@ import { cn } from "@/lib/utils/cn";
 import "./globals.css";
 import { Providers } from "./providers";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+// The pairing: Fredoka carries the one playful headline moment, Manrope carries
+// everything data-dense. Its rounded terminals echo Fredoka without competing,
+// and it stays crisp at stat-number and search-placeholder sizes.
+const manrope = Manrope({ variable: "--font-manrope", subsets: ["latin"] });
+const fredoka = Fredoka({ variable: "--font-fredoka", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+
+// Fan-made replica of the hand-drawn logo lettering (free for personal and
+// commercial use). Confined to the header wordmark — the brand moment.
+const pokemonSolid = localFont({
+  src: "./fonts/pokemon-solid.ttf",
+  variable: "--font-pokemon",
+  display: "swap",
+});
+const pokemonHollow = localFont({
+  src: "./fonts/pokemon-hollow.ttf",
+  variable: "--font-pokemon-hollow",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -20,6 +38,9 @@ export const metadata: Metadata = {
   description:
     "Search, filter and compare all 1,025 Pokémon. A fast, accessible Pokédex built on PokéAPI.",
   applicationName: "Pokémon Explorer",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/favicon.ico" }],
+  },
 };
 
 export const viewport: Viewport = {
@@ -39,8 +60,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       lang="en"
       className={cn(
         themeClass(theme),
-        geistSans.variable,
+        manrope.variable,
+        fredoka.variable,
         geistMono.variable,
+        pokemonSolid.variable,
+        pokemonHollow.variable,
         "h-full antialiased",
       )}
     >
@@ -56,29 +80,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <Providers>
             <AppHeader />
             {children}
-            <SiteFooter />
           </Providers>
         </ThemeProvider>
       </body>
     </html>
-  );
-}
-
-function SiteFooter() {
-  return (
-    <footer className="mt-auto border-t border-line py-8">
-      <div className="mx-auto max-w-[100rem] px-4 text-center text-xs text-ink-faint sm:px-6 lg:px-10">
-        Data from{" "}
-        <a
-          href="https://pokeapi.co"
-          target="_blank"
-          rel="noreferrer"
-          className="font-medium text-ink-muted underline underline-offset-2 hover:text-ink"
-        >
-          PokéAPI
-        </a>
-        . Pokémon and Pokémon character names are trademarks of Nintendo.
-      </div>
-    </footer>
   );
 }

@@ -66,7 +66,7 @@ export const PokemonCard = memo(function PokemonCard({ item, index, href }: Poke
         </div>
 
         {/* ------------------------------------------------------ info block */}
-        <div className="flex flex-1 flex-col items-start px-4 pb-4 pt-7">
+        <div className="flex flex-1 flex-col items-center px-4 pb-4 pt-7 text-center">
           <span className="tabular text-[11px] font-semibold tracking-wide text-ink-faint">
             {formatDexNumber(item.id)}
           </span>
@@ -74,7 +74,7 @@ export const PokemonCard = memo(function PokemonCard({ item, index, href }: Poke
             {item.displayName}
           </h3>
 
-          <div className="mt-2 flex min-h-[26px] flex-wrap items-center gap-1.5">
+          <div className="mt-2 flex min-h-[26px] flex-wrap items-center justify-center gap-1.5">
             {item.pokemon ? (
               item.pokemon.types.map((type) => <TypeChip key={type} type={type} />)
             ) : (
