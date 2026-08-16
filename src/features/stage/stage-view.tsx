@@ -71,17 +71,17 @@ export function StageView({ feed, search, activeName }: StageViewProps) {
         running to the window edges, which is what gives the layout its poster-like
         feel and lets artwork overhang without touching the browser chrome.
       */}
-      <div className="raised-lg relative isolate overflow-hidden rounded-4xl border border-line bg-canvas-muted/60 px-5 pb-8 pt-10 sm:px-8 sm:pt-12 lg:px-12 lg:pb-12">
+      <div className="raised-lg relative isolate overflow-hidden rounded-4xl border border-line bg-canvas-muted/60 px-5 pb-8 pt-8 sm:px-8 sm:pt-10 lg:px-12 lg:pb-10">
         <StageBackdrop types={item.pokemon?.types ?? []} />
 
-        <div className="grid items-end gap-10 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:gap-12">
+        <div className="grid items-stretch gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-12">
           <FeaturedPokemon
             item={item}
             href={hrefFor(item.name)}
             isActive={activeName === item.name}
           />
 
-          <div className="flex min-w-0 flex-col gap-8 lg:gap-12">
+          <div className="flex min-w-0 flex-col justify-between gap-8 lg:gap-12">
             <header className="grid gap-5 sm:grid-cols-[1.05fr_1fr] sm:items-start sm:gap-8">
               <div>
                 <p className="text-sm font-bold tracking-tight text-brand">Go explore</p>
@@ -101,6 +101,7 @@ export function StageView({ feed, search, activeName }: StageViewProps) {
             </header>
 
             <StageRail
+              className="-mr-5 sm:-mr-8 lg:-mr-12"
               items={items}
               activeIndex={index}
               total={totalCount}

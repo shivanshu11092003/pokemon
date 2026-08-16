@@ -39,8 +39,9 @@ transitions, full keyboard support and a light/dark design system.
 
 **Filtering & sorting**
 
-- Filter by one of the 18 types at a time. Chips are neutral chrome carrying a small colour dot;
-  only the active type takes its full colour, so the bar shows one accent rather than eighteen.
+- Filter by one of the 18 types at a time, chosen from a menu that shows all eighteen at once in an
+  even grid — each with its own icon in its own colour. The trigger carries just a dot and the type
+  name, so the toolbar stays one calm row and the page shows one accent at a time.
 - Sort by dex number, name, HP, Attack, Speed or base stat total.
 - Search, filters and sort all live in the URL — `/?q=char&type=fire&sort=attack` is shareable and
   survives a refresh.
@@ -67,7 +68,7 @@ transitions, full keyboard support and a light/dark design system.
 
 | | |
 |---|---|
-| ![Spotlight, dark theme](docs/screenshots/02-spotlight-dark.png) | ![Spotlight filtered to Dragon](docs/screenshots/03-spotlight-filtered.png) |
+| ![Spotlight, dark theme](docs/screenshots/02-spotlight-dark.png) | ![Type menu](docs/screenshots/03-type-menu.png) |
 | ![Grid view, filtered and sorted](docs/screenshots/04-grid-view.png) | ![Detail modal](docs/screenshots/05-detail-modal.png) |
 | ![Detail page](docs/screenshots/06-detail-page.png) | ![Compare](docs/screenshots/09-compare.png) |
 | ![Empty state](docs/screenshots/08-empty.png) | <img src="docs/screenshots/07-mobile.png" width="300" alt="Mobile spotlight"> |
@@ -229,6 +230,14 @@ across all four combinations (system/light, system/dark, forced-dark on a light 
 a dark OS) with zero console warnings. The one cost is that reading a cookie opts the root layout
 into dynamic rendering — acceptable here, since the shell fetches nothing on the server anyway.
 
+**A filter you cannot see is not a filter.** The type selector started as a scrolling rail of all
+eighteen types. At every realistic viewport it was clipped somewhere around Ghost, so the last third
+of the types were only reachable by discovering that the row scrolled sideways — and the row's own
+"All" reset sat outside the pill styling, which made the whole strip read as loose text rather than
+controls. Moving the choice behind one trigger fixed both: all eighteen fit in a 3×6 grid with their
+icons, nothing is clipped, the reset is a first-class row, and the toolbar collapses from two ragged
+rows to one.
+
 **Eighteen accent colours is not a palette, it's noise.** The first version of the filter bar drew
 all eighteen types as saturated pills, permanently. Every one was individually well-chosen and the
 result still looked cheap, because eighteen competing accents on screen at once have no hierarchy —
@@ -251,6 +260,14 @@ and it refused to stay vertically centred. Both were utilities losing to Motion:
 inline `transform`, which replaces `-translate-y-1/2` wholesale. The rule that falls out is worth
 keeping: **never style an animated property with a class.** Transparency moved into the colour
 (`text-ink/5`) and centring moved onto a non-animated wrapper.
+
+**Bottom-aligning two columns of different heights.** The spotlight's panel used `items-end`, which
+looked right until you noticed the shorter right-hand column being pushed down as a block, leaving a
+few hundred pixels of dead space above the headline. Stretching the columns and distributing the
+right one (`justify-between`) pins the headline to the top and the carousel to the bottom, so both
+columns now start and finish on the same lines. The remaining height difference was then genuinely
+too much whitespace, so the fix was to tighten the taller column — smaller artwork, tighter card
+rhythm — rather than pad the shorter one out with filler.
 
 **A grid that centred its items but not itself.** The spotlight's two columns sat pinned to the top
 of the stage with dead space below. `items-center` was set, but that centres each item *within* its

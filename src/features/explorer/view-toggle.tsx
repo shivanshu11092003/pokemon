@@ -1,11 +1,11 @@
 "use client";
 
-import { LayoutGrid, Projector } from "lucide-react";
+import { Aperture, LayoutGrid } from "lucide-react";
 import type { ExplorerView } from "@/hooks/use-explorer-params";
 import { cn } from "@/lib/utils/cn";
 
 const OPTIONS: Array<{ value: ExplorerView; label: string; Icon: typeof LayoutGrid }> = [
-  { value: "stage", label: "Spotlight", Icon: Projector },
+  { value: "stage", label: "Spotlight", Icon: Aperture },
   { value: "grid", label: "Grid", Icon: LayoutGrid },
 ];
 

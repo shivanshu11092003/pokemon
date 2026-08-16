@@ -15,6 +15,7 @@ const ITEM_GAP = 16;
 const ART_OVERHANG = 44;
 
 interface StageRailProps {
+  className?: string;
   items: FeedItem[];
   activeIndex: number;
   total: number;
@@ -30,6 +31,7 @@ interface StageRailProps {
  * selection approaches its right edge.
  */
 export function StageRail({
+  className,
   items,
   activeIndex,
   total,
@@ -94,8 +96,8 @@ export function StageRail({
   };
 
   return (
-    <div className="min-w-0">
-      <div className="mb-2 flex items-center justify-between gap-3 pl-1">
+    <div className={cn("min-w-0", className)}>
+      <div className="mb-2 flex items-center justify-between gap-3 pl-1 pr-5 sm:pr-8 lg:pr-12">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-faint">
           Browse the dex
         </p>

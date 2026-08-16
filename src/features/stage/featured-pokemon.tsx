@@ -46,7 +46,7 @@ export function FeaturedPokemon({ item, href, isActive }: FeaturedPokemonProps) 
   return (
     <div style={typeStyle(pokemon?.types[0])} className="relative flex flex-col justify-end">
       {/* ------------------------------------------------------------- art */}
-      <div className="relative z-10 -mb-14 flex justify-center sm:-mb-20 lg:justify-start lg:pl-6">
+      <div className="relative z-10 -mb-12 flex justify-center sm:-mb-16">
         <AnimatePresence mode="wait">
           <motion.div
             key={item.id}
@@ -61,7 +61,7 @@ export function FeaturedPokemon({ item, href, isActive }: FeaturedPokemonProps) 
                 name={item.displayName}
                 size={420}
                 priority
-                className="size-[clamp(11rem,24vw,19rem)] drop-shadow-[0_30px_40px_rgba(0,0,0,0.25)]"
+                className="size-[clamp(9.5rem,20vw,16rem)] drop-shadow-[0_28px_36px_rgba(0,0,0,0.24)]"
               />
             </motion.div>
           </motion.div>
@@ -69,7 +69,7 @@ export function FeaturedPokemon({ item, href, isActive }: FeaturedPokemonProps) 
       </div>
 
       {/* ------------------------------------------------------------ card */}
-      <article className="raised-lg relative rounded-[1.75rem] border border-line bg-surface/85 p-5 pt-16 backdrop-blur-xl sm:p-6 sm:pt-20">
+      <article className="raised-lg relative rounded-[1.75rem] border border-line bg-surface/85 p-5 pt-14 backdrop-blur-xl sm:p-6 sm:pt-16">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h2 className="type-ink text-[clamp(1.6rem,2.6vw,2.1rem)] font-bold leading-tight tracking-tight">
@@ -94,11 +94,11 @@ export function FeaturedPokemon({ item, href, isActive }: FeaturedPokemonProps) 
           )}
         </div>
 
-        <p className="mt-3.5 line-clamp-3 min-h-15 text-[13px] leading-relaxed text-ink-muted">
+        <p className="mt-3 line-clamp-3 min-h-15 text-[13px] leading-relaxed text-ink-muted">
           {species?.flavorText ?? " "}
         </p>
 
-        <dl className="mt-4 grid grid-cols-4 gap-2 border-t border-line pt-4">
+        <dl className="mt-4 grid grid-cols-4 gap-2 border-t border-line pt-3.5">
           {STAGE_STATS.map((key) => (
             <div key={key}>
               <dt className="text-[10px] font-medium uppercase tracking-wider text-ink-faint">
@@ -111,7 +111,7 @@ export function FeaturedPokemon({ item, href, isActive }: FeaturedPokemonProps) 
           ))}
         </dl>
 
-        <div className="mt-5 flex items-center gap-2">
+        <div className="mt-4 flex items-center gap-2">
           <Button asChild variant="primary" size="md">
             <Link href={href}>
               Read more

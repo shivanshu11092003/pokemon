@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/states/empty-state";
 import { ErrorState } from "@/components/states/error-state";
 import { CompareTray } from "@/features/compare/compare-tray";
 import { SortSelect } from "@/features/filters/sort-select";
-import { TypeFilterRail } from "@/features/filters/type-filter-rail";
+import { TypeFilterMenu } from "@/features/filters/type-filter-menu";
 import { SearchBar } from "@/features/search/search-bar";
 import { StageView } from "@/features/stage/stage-view";
 import { useExplorerParams } from "@/hooks/use-explorer-params";
@@ -66,8 +66,8 @@ export function Explorer() {
       {/* ---------------------------------------------------------- toolbar */}
       <div className="sticky top-18 z-30 border-b border-line bg-canvas/80 backdrop-blur-xl">
         <div className="mx-auto max-w-[100rem] px-4 sm:px-6 lg:px-10">
-          <div className="flex flex-col gap-3 py-3.5 sm:flex-row sm:items-center sm:gap-4">
-            <div className="min-w-0 flex-1 sm:max-w-sm">
+          <div className="flex flex-wrap items-center gap-2 py-3.5 sm:gap-3">
+            <div className="min-w-0 basis-full sm:max-w-sm sm:flex-1 sm:basis-auto">
               <SearchBar
                 value={params.query}
                 onChange={params.setQuery}
@@ -76,6 +76,11 @@ export function Explorer() {
             </div>
 
             <div className="flex shrink-0 items-center gap-2">
+              <TypeFilterMenu selected={params.type} onSelect={params.selectType} />
+              <SortSelect value={params.sort} onChange={params.setSort} />
+            </div>
+
+            <div className="flex shrink-0 items-center gap-2 sm:ml-auto">
               <button
                 type="button"
                 aria-pressed={params.favoritesOnly}
@@ -96,13 +101,8 @@ export function Explorer() {
 
               <span aria-hidden className="hidden h-6 w-px bg-line sm:block" />
 
-              <SortSelect value={params.sort} onChange={params.setSort} />
               <ViewToggle value={params.view} onChange={params.setView} />
             </div>
-          </div>
-
-          <div className="border-t border-line py-2">
-            <TypeFilterRail selected={params.type} onSelect={params.selectType} />
           </div>
         </div>
       </div>
