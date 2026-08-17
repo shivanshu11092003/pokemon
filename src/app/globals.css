@@ -232,6 +232,25 @@ body {
 }
 
 /*
+ * Dynamic button styled in the current Pokémon's type color rather than generic red.
+ */
+.type-btn {
+  background: light-dark(
+    color-mix(in oklab, var(--type-color) 88%, black 4%),
+    color-mix(in oklab, var(--type-color) 82%, white 6%)
+  );
+  color: light-dark(white, oklch(0.16 0.014 268));
+  border: 1px solid transparent;
+  box-shadow: var(--shadow-resting);
+  transition: filter 150ms var(--ease-out-soft), box-shadow 150ms var(--ease-out-soft), transform 150ms var(--ease-out-soft);
+}
+
+.type-btn:hover {
+  filter: brightness(1.1);
+  box-shadow: var(--shadow-hover);
+}
+
+/*
  * Filter chips: neutral until chosen. The colour dot identifies the type without
  * spending an accent on it, so the bar carries one saturated colour at a time
  * instead of eighteen.

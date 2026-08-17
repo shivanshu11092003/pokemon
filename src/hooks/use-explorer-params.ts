@@ -107,7 +107,13 @@ export function useExplorerParams(): ExplorerParamsApi {
   const setSort = useCallback((sort: SortKey) => commit({ ...current, sort }), [commit, current]);
 
   const setFavoritesOnly = useCallback(
-    (value: boolean) => commit({ ...current, favoritesOnly: value }),
+    (value: boolean) =>
+      commit({
+        ...current,
+        query: "",
+        types: [],
+        favoritesOnly: value,
+      }),
     [commit, current],
   );
 

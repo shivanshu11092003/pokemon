@@ -11,6 +11,7 @@ interface PokemonArtProps {
   /** Rendered size in CSS pixels; drives the srcset Next generates. */
   size: number;
   priority?: boolean;
+  loading?: "eager" | "lazy";
   className?: string;
 }
 
@@ -24,9 +25,12 @@ export const PokemonArt = memo(function PokemonArt({
   name,
   size,
   priority = false,
+  loading,
   className,
 }: PokemonArtProps) {
   const [failed, setFailed] = useState(false);
+
+  const isEager = priority || loading === "eager";
 
   return (
     <Image
@@ -34,8 +38,8 @@ export const PokemonArt = memo(function PokemonArt({
       alt={`${name} official artwork`}
       width={size}
       height={size}
-      priority={priority}
-      loading={priority ? undefined : "lazy"}
+      priority={isEager}
+      loading={isEager ? "eager" : "lazy"}
       decoding="async"
       unoptimized={failed}
       onError={() => setFailed(true)}

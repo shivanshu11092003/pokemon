@@ -67,6 +67,7 @@ export function PokemonDetail({ pokemon, neighbours, onNavigate }: PokemonDetail
               name={pokemon.displayName}
               size={224}
               priority
+              loading="eager"
               className="size-full drop-shadow-[0_16px_28px_rgba(0,0,0,0.22)]"
             />
           </div>

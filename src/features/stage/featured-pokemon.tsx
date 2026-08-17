@@ -42,7 +42,7 @@ export function FeaturedPokemon({ item, href }: FeaturedPokemonProps) {
   const { data: species } = useQuery(pokemonSpeciesOptions(item.id));
 
   return (
-    <div style={typeStyle(pokemon?.types[0])} className="relative flex flex-col justify-end">
+    <div style={typeStyle(pokemon?.types[0])} className="relative flex h-full flex-col justify-end">
       {/*
         Ghost dex number. The column is bottom-anchored by design, and without
         this the upper-left of the panel read as dead space next to a right
@@ -56,7 +56,7 @@ export function FeaturedPokemon({ item, href }: FeaturedPokemonProps) {
       </span>
 
       {/* ------------------------------------------------------------- art */}
-      <div className="relative z-10 -mb-12 flex justify-center sm:-mb-16">
+      <div className="relative z-10 -mb-12 flex justify-center sm:-mb-14">
         <AnimatePresence mode="wait">
           <motion.div
             key={item.id}
@@ -70,73 +70,78 @@ export function FeaturedPokemon({ item, href }: FeaturedPokemonProps) {
               name={item.displayName}
               size={420}
               priority
-              className="size-[clamp(9.5rem,20vw,16rem)] drop-shadow-[0_28px_36px_rgba(0,0,0,0.24)]"
+              loading="eager"
+              className="size-[clamp(10.5rem,22vw,17.5rem)] drop-shadow-[0_28px_36px_rgba(0,0,0,0.24)]"
             />
           </motion.div>
         </AnimatePresence>
       </div>
 
       {/* ------------------------------------------------------------ card */}
-      <article className="raised-lg relative rounded-[1.75rem] border border-line bg-surface/85 p-5 pt-14 backdrop-blur-xl sm:p-6 sm:pt-16">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h2 className="type-ink text-[clamp(1.6rem,2.6vw,2.1rem)] font-bold leading-tight tracking-tight">
-              <AnimatePresence mode="wait">
-                <SplitText key={item.id} text={item.displayName} />
-              </AnimatePresence>
-            </h2>
-            <p className="tabular mt-0.5 text-xs font-medium text-ink-faint">
-              {formatDexNumber(item.id)}
-              {species?.genus ? ` · ${species.genus}` : ""}
-            </p>
+      <article className="raised-lg relative flex flex-col justify-between rounded-[1.75rem] border border-line bg-surface/85 p-6 pt-14 backdrop-blur-xl sm:p-7 sm:pt-16">
+        <div>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="type-ink text-[clamp(1.75rem,2.8vw,2.25rem)] font-bold leading-tight tracking-tight">
+                <AnimatePresence mode="wait">
+                  <SplitText key={item.id} text={item.displayName} />
+                </AnimatePresence>
+              </h2>
+              <p className="tabular mt-0.5 text-xs font-medium text-ink-faint">
+                {formatDexNumber(item.id)}
+                {species?.genus ? ` · ${species.genus}` : ""}
+              </p>
+            </div>
+
+            <FavoriteButton id={item.id} name={item.displayName} size="md" className="shrink-0" />
           </div>
 
-          <FavoriteButton id={item.id} name={item.displayName} size="md" className="shrink-0" />
+          <div className="mt-3.5 flex flex-wrap gap-1.5">
+            {pokemon ? (
+              pokemon.types.map((type) => <TypeChip key={type} type={type} />)
+            ) : (
+              <Skeleton className="h-6.5 w-20 rounded-full" />
+            )}
+          </div>
+
+          <p className="mt-3.5 line-clamp-3 min-h-16 text-[13.5px] leading-relaxed text-ink-muted">
+            {species?.flavorText ?? " "}
+          </p>
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {pokemon ? (
-            pokemon.types.map((type) => <TypeChip key={type} type={type} />)
-          ) : (
-            <Skeleton className="h-6.5 w-20 rounded-full" />
-          )}
-        </div>
+        <div>
+          <dl className="mt-5 grid grid-cols-4 gap-2 border-t border-line pt-4">
+            {STAGE_STATS.map((key) => (
+              <div key={key}>
+                <dt className="text-[10px] font-medium uppercase tracking-wider text-ink-faint">
+                  {formatStatLabel(key)}
+                </dt>
+                <dd className="tabular text-lg font-semibold text-ink">
+                  {pokemon ? pokemon.stats[key] : "—"}
+                </dd>
+              </div>
+            ))}
+          </dl>
 
-        <p className="mt-3 line-clamp-3 min-h-15 text-[13px] leading-relaxed text-ink-muted">
-          {species?.flavorText ?? " "}
-        </p>
-
-        <dl className="mt-4 grid grid-cols-4 gap-2 border-t border-line pt-3.5">
-          {STAGE_STATS.map((key) => (
-            <div key={key}>
-              <dt className="text-[10px] font-medium uppercase tracking-wider text-ink-faint">
-                {formatStatLabel(key)}
-              </dt>
-              <dd className="tabular text-lg font-semibold text-ink">
-                {pokemon ? pokemon.stats[key] : "—"}
-              </dd>
-            </div>
-          ))}
-        </dl>
-
-        <div className="mt-4 flex items-center gap-2">
-          <Button asChild variant="primary" size="md">
-            <Link href={href}>
-              Read more
-              <ArrowRight />
-            </Link>
-          </Button>
-          <Button
-            variant={isComparing ? "primary" : "secondary"}
-            size="md"
-            onClick={() => toggleCompare(item.id)}
-            aria-pressed={isComparing}
-          >
-            <GitCompareArrows />
-            <span className="sr-only sm:not-sr-only">
-              {isComparing ? "In comparison" : "Compare"}
-            </span>
-          </Button>
+          <div className="mt-5 flex items-center gap-2">
+            <Button asChild variant="type" size="md">
+              <Link href={href}>
+                Read more
+                <ArrowRight />
+              </Link>
+            </Button>
+            <Button
+              variant={isComparing ? "primary" : "secondary"}
+              size="md"
+              onClick={() => toggleCompare(item.id)}
+              aria-pressed={isComparing}
+            >
+              <GitCompareArrows />
+              <span className="sr-only sm:not-sr-only">
+                {isComparing ? "In comparison" : "Compare"}
+              </span>
+            </Button>
+          </div>
         </div>
       </article>
     </div>
