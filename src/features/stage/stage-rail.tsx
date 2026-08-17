@@ -125,7 +125,7 @@ export function StageRail({
         aria-activedescendant={`rail-item-${items[activeIndex]?.id ?? 0}`}
         tabIndex={0}
         onKeyDown={onKeyDown}
-        className="rail overflow-x-auto overflow-y-hidden rounded-[1.5rem] outline-offset-4"
+        className="rail overflow-x-auto overflow-y-hidden rounded-3xl outline-offset-4"
         style={{ paddingTop: ART_OVERHANG }}
       >
         <div className="relative" style={{ width: virtualizer.getTotalSize(), height: 172 }}>
@@ -180,7 +180,7 @@ function RailCard({
       style={typeStyle(item.pokemon?.types[0])}
       className={cn(
         "group relative flex h-43 w-full flex-col justify-end rounded-card border p-3 text-center",
-        "transition-[transform,box-shadow,border-color] duration-300 ease-[var(--ease-out-soft)]",
+        "transition-[transform,box-shadow,border-color] duration-300 ease-(--ease-out-soft)",
         isActive
           ? "type-wash raised-lg -translate-y-2 border-[color-mix(in_oklab,var(--type-color)_45%,transparent)]"
           : "raised border-line bg-surface/70 hover:-translate-y-1 hover:shadow-hover",
@@ -193,7 +193,7 @@ function RailCard({
           name={item.displayName}
           size={144}
           className={cn(
-            "size-[116px] drop-shadow-[0_14px_18px_rgba(0,0,0,0.22)] transition-transform duration-300 ease-[var(--ease-out-soft)]",
+            "size-29 drop-shadow-[0_14px_18px_rgba(0,0,0,0.22)] transition-transform duration-300 ease-(--ease-out-soft)",
             isActive ? "scale-110" : "group-hover:scale-105",
           )}
         />

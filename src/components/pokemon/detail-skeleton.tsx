@@ -6,7 +6,7 @@ export function DetailSkeleton() {
     <div aria-busy className="w-full min-w-0 overflow-hidden pb-10">
       <div className="bg-canvas-muted px-6 pb-8 pt-10 md:px-10 md:pt-12">
         <div className="mx-auto flex max-w-3xl flex-col items-center gap-6 md:flex-row md:items-end md:gap-10">
-          <Skeleton className="size-[190px] max-w-full shrink-0 rounded-full md:size-[224px]" />
+          <Skeleton className="size-47.5 max-w-full shrink-0 rounded-full md:size-56" />
           <div className="flex w-full min-w-0 flex-col items-center gap-3 md:items-start">
             <Skeleton className="h-4 w-14 max-w-full" />
             <Skeleton className="h-10 w-52 max-w-full" />
@@ -21,7 +21,7 @@ export function DetailSkeleton() {
       <div className="mx-auto max-w-3xl space-y-8 px-6 py-8 md:px-10">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {["height", "weight", "exp", "abilities"].map((key) => (
-            <Skeleton key={key} className="h-[4.5rem] rounded-[var(--radius-control)]" />
+            <Skeleton key={key} className="h-18 rounded-(--radius-control)" />
           ))}
         </div>
         <div className="space-y-2.5">

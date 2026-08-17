@@ -110,8 +110,12 @@ export function useExplorerParams(): ExplorerParamsApi {
     (value: boolean) =>
       commit({
         ...current,
-        query: "",
-        types: [],
+        // Switching *into* favourites starts clean: a leftover search or type
+        // filter usually narrows a short list to nothing and reads as an empty
+        // shelf. Switching out of it must not throw away filters the user set
+        // deliberately — that was silently discarding their search.
+        query: value ? "" : current.query,
+        types: value ? [] : current.types,
         favoritesOnly: value,
       }),
     [commit, current],

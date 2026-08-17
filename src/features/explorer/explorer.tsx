@@ -1,12 +1,12 @@
 "use client";
 
 import { Heart } from "lucide-react";
-import dynamic from "next/dynamic";
 import { EmptyState } from "@/components/states/empty-state";
 import { ErrorState } from "@/components/states/error-state";
 import { SortSelect } from "@/features/filters/sort-select";
 import { TypeFilterMenu } from "@/features/filters/type-filter-menu";
 import { SearchBar } from "@/features/search/search-bar";
+import { StageView } from "@/features/stage/stage-view";
 import { useExplorerParams } from "@/hooks/use-explorer-params";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { usePokemonFeed } from "@/hooks/use-pokemon-feed";
@@ -15,22 +15,9 @@ import { cn } from "@/lib/utils/cn";
 import { formatCount } from "@/lib/utils/format";
 import { useUiStore } from "@/stores/ui-store";
 import type { PokemonTypeName } from "@/types/pokemon";
-import { GridSkeleton, StageSkeleton } from "./skeletons";
+import { GridView } from "./grid-view";
+import { StageSkeleton } from "./skeletons";
 import { ViewToggle } from "./view-toggle";
-
-/*
- * The two browsing modes are mutually exclusive — nobody sees both — so neither
- * belongs in the entry chunk. Splitting them also pulls their heavy dependencies
- * with them: the virtualiser and `react-infinite-scroll-component` now only load
- * for the reader who actually opens the grid.
- *
- * `ssr` stays on so the first paint and the crawler still get real markup.
- */
-const StageView = dynamic(() => import("@/features/stage/stage-view").then((m) => m.StageView));
-
-const GridView = dynamic(() => import("./grid-view").then((m) => m.GridView), {
-  loading: () => <GridSkeleton />,
-});
 
 export function Explorer() {
   const params = useExplorerParams();

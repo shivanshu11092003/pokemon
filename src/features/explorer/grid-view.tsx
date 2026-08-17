@@ -20,9 +20,9 @@ interface GridViewProps {
 }
 
 /**
- * The classic card-grid mode. Lives in its own chunk — see `explorer.tsx` — so
- * the virtualiser and `react-infinite-scroll-component` are only downloaded by
- * readers who actually switch to it.
+ * The classic card-grid mode. Ships in the entry chunk alongside the spotlight:
+ * splitting the two raced the streamed Suspense swap and intermittently failed
+ * hydration, so both views load together — see the README's Performance notes.
  */
 export function GridView({ feed, search, types, query, isEmpty, emptyState }: GridViewProps) {
   return (

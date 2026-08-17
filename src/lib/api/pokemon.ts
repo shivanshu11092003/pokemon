@@ -138,8 +138,13 @@ export async function fetchPokemonBatch(
       const pokemon = await fetchPokemon(id, signal);
       onEach?.(pokemon);
       return pokemon;
-    } catch {
-      // A single bad id must not fail the whole sort.
+    } catch (error) {
+      // A cancellation has to propagate. Swallowing it let an aborted batch
+      // *resolve* with whatever had landed so far, which TanStack Query then
+      // cached under an immutable key — so a stat sort interrupted mid-flight
+      // stayed permanently sorted against a truncated pool.
+      if (signal?.aborted) throw error;
+      // A single bad id, though, must not fail the whole sort.
       return null;
     }
   });

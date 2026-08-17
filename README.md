@@ -20,12 +20,12 @@ UI design, loading states, error handling, responsiveness and component architec
 |---|---|---|---|
 | 1 | **Listing** — card layout with image, name, id, types, type-based styling | Two browsing modes: a Spotlight hero and a virtualised card grid. Cards carry artwork, zero-padded dex number, name and type chips on a surface washed with the primary type's colour | [`pokemon-card.tsx`](src/components/pokemon/pokemon-card.tsx), [`stage/`](src/features/stage/) |
 | 2 | **Search** by name, with a not-found state | Debounced typeahead over a cached name index; accepts names, partial names, fuzzy input and raw dex numbers. Misses get a designed empty state with edit-distance suggestions | [`search-bar.tsx`](src/features/search/search-bar.tsx), [`empty-state.tsx`](src/components/states/empty-state.tsx) |
-| 3 | **Pagination / Load More / infinite scroll** | Infinite scroll in pages of 24 — one of the three options the brief allows | [`explorer.tsx`](src/features/explorer/explorer.tsx), [`load-more.tsx`](src/features/explorer/load-more.tsx), [`use-pokemon-feed.ts`](src/hooks/use-pokemon-feed.ts) |
+| 3 | **Pagination / Load More / infinite scroll** | Infinite scroll in pages of 24 — one of the three options the brief allows | [`grid-view.tsx`](src/features/explorer/grid-view.tsx), [`use-pokemon-feed.ts`](src/hooks/use-pokemon-feed.ts) |
 | 4 | **Details** — image, name, id, types, height, weight, abilities, stats, moves | Full `/pokemon/[name]` route with all of the above plus animated stat bars, hidden-ability badges and moves grouped by learn method | [`pokemon-detail.tsx`](src/components/pokemon/pokemon-detail.tsx) |
 | 5 | **Filter by type** | A menu holding all 18 types in an even grid; selection is a union, so `Fire + Water` shows both | [`type-filter-menu.tsx`](src/features/filters/type-filter-menu.tsx) |
 | 6 | **Responsive** desktop / tablet / mobile | Verified at 360, 390, 834, 1440 and 2560px. The toolbar collapses from one row to two; the Spotlight restacks; the grid runs 1–5 columns | [`explorer.tsx`](src/features/explorer/explorer.tsx), [`use-column-count.ts`](src/hooks/use-column-count.ts) |
 | — | **Loading / error / empty states** | Dimension-matched skeletons, a typed error state with retry, and empty states that suggest a way out | [`states/`](src/components/states/), [`card-skeleton.tsx`](src/components/pokemon/card-skeleton.tsx) |
-| ⭐ | Favourites, dark mode, sort, compare, keyboard, URL-based state | All six. See **Features** above | — |
+| ⭐ | Favourites, dark mode, sort, compare, keyboard, URL-based state | All six. See **Features** below | — |
 
 ### Beyond the brief
 
@@ -51,8 +51,8 @@ no pre-paint script.
               ┌───────────────────────────────┼───────────────────────────────┐
               ▼                               ▼                               ▼
       filter the index              sort (id/name free;              slice to the
-      by type ∪ favourites ∪        stat sorts hydrate a             visible page
-      fuzzy query                   bounded pool of 300)             of 24
+      by the type union, then       stat sorts hydrate a             visible page
+      favourites, then query        bounded pool of 300)             of 24
                                               │
                                               ▼
                             useQueries → GET /pokemon/{name} per visible card
@@ -78,9 +78,10 @@ Nothing is owned twice. That single rule is what keeps the data layer legible.
 
 ### Performance
 
-- **Code splitting.** Spotlight and Grid are mutually exclusive, so neither is in the entry chunk.
-  Loading the app fetches 13 chunks; switching to the grid pulls **one more, 34 KB**, which carries
-  the virtualiser and `react-infinite-scroll-component` with it. Nobody downloads a mode they never open.
+- **One bundle, on purpose.** Spotlight and Grid used to be `next/dynamic` chunks, but the split
+  raced the streamed Suspense swap on cold loads and intermittently failed hydration (React #418).
+  Both views now ship in the entry chunk — the extra ~34 KB is the price of a page that always
+  hydrates. The split can return once the upstream streaming race is fixed.
 - **Transitions.** Every filter, sort and search commit goes through `useTransition`. Re-filtering
   1,025 entries is the expensive half of a keystroke; inside a transition React keeps the input
   responsive and paints when ready rather than blocking on the way through.
@@ -117,7 +118,7 @@ Nothing is owned twice. That single rule is what keeps the data layer legible.
 **Paging**
 
 - **Infinite scroll**, in pages of 24, via `react-infinite-scroll-component`. Because both views are
-  virtualised the two compose cleanly: scrolling 136 Pokémon into the feed keeps **40 cards in the
+  virtualised the two compose cleanly: scrolling 136 Pokémon into the feed keeps **~44 cards in the
   DOM**, not 136.
 - A quiet end-of-feed rule closes the list once everything matching is loaded, so the page has a
   bottom rather than trailing off.
@@ -175,11 +176,11 @@ Nothing is owned twice. That single rule is what keeps the data layer legible.
 | Language | **TypeScript** (strict) | No `any`, no `@ts-ignore` in the codebase |
 | Server state | **TanStack Query v5** | `queryOptions` factories, pooled batch fetches, 404-aware retries |
 | Client state | **Zustand** + `persist` | Preferences only — favourites and the comparison slate |
-| Styling | **Tailwind CSS v4** | CSS-first `@theme` tokens; no colour is hardcoded in a component |
+| Styling | **Tailwind CSS v4** | CSS-first `@theme` tokens; the eighteen type accents all resolve from one `--type-color` variable rather than eighteen sets of classes |
 | Typography | **Manrope** + **Fredoka** + a Pokémon-logo replica | Manrope stays crisp at stat-number sizes; Fredoka carries the one playful headline; the logo lettering is confined to the header wordmark |
 | Components | **shadcn/ui** patterns on Radix | Hand-placed primitives in `components/ui`, owned by this repo |
 | Animation | **Motion** (`motion/react`) | Entrance and hover springs, global reduced-motion |
-| Perf | `next/dynamic`, `React.memo`, `useTransition`, `optimizePackageImports` | The two browsing modes are split into their own chunks; filter changes run as non-urgent transitions |
+| Perf | `React.memo`, `useTransition`, `optimizePackageImports` | Memoised cards, non-urgent filter transitions, trimmed icon/motion imports |
 | Virtualisation | **TanStack Virtual** | Window virtualiser with a constant row height |
 | Infinite scroll | **react-infinite-scroll-component** | The only paging mode, wrapped around the virtualised grid |
 | Theming | Cookie + `color-scheme` + `light-dark()` | Server-rendered, so there is no hydration mismatch and no pre-paint script |
@@ -200,7 +201,7 @@ rebuilt as pure CSS so it costs no JavaScript.
 | `GET /pokemon?limit=100000&offset=0` | The name index — every name and id in one cached request |
 | `GET /pokemon/{name}` | Full detail record for a card, modal or page |
 | `GET /pokemon-species/{id}` | Genus and flavour text — the actual Pokédex prose, fetched only for the spotlight |
-| `GET /type/{type}` | Type membership lists, intersected client-side |
+| `GET /type/{type}` | Type membership lists, unioned client-side |
 
 Artwork comes from the PokéAPI sprites CDN, addressed by dex id.
 
@@ -221,7 +222,8 @@ cd pokedex-explorer
 pnpm install
 ```
 
-Requires Node 20+ and pnpm 9+. No environment variables and no API key.
+Requires Node 20.9+ and pnpm 11 (pinned in `package.json` via `packageManager`). No environment
+variables and no API key.
 
 ## Running Locally
 
@@ -254,9 +256,9 @@ src/
 │   └── states/                   # empty + error screens
 │
 ├── features/                     # vertical slices
-│   ├── explorer/                 # page composition, view toggle, load-more
+│   ├── explorer/                 # page composition, view toggle, grid view, skeletons
 │   ├── stage/                    # spotlight: backdrop, featured card, carousel
-│   ├── search/  filters/  compare/
+│   └── search/  filters/  compare/
 │
 ├── hooks/                        # feed, detail, URL params, column count, keyboard nav
 ├── lib/
@@ -288,11 +290,11 @@ immediately with a shimmering placeholder where its type chips will go. Detail r
 in the background. Because the card box is a fixed size from the very first frame, **cumulative
 layout shift is zero** even though the content streams in.
 
-**Filtering by type breaks pagination.** `/type/fire` returns all 81 members at once with no
+**Filtering by type breaks pagination.** `/type/fire` returns all 109 members at once with no
 pagination and no detail, so `?limit=24&offset=0` no longer describes anything real. The fix was to
-stop paginating against the API at all: one cached call per type, sets intersected client-side, then
+stop paginating against the API at all: one cached call per type, sets unioned client-side, then
 the *result list* is sliced into pages of 24. Switching or combining type filters after the first
-visit costs zero requests, and Load More behaves identically filtered or not.
+visit costs zero requests, and paging behaves identically filtered or not.
 
 **Sorting by a base stat needs data you don't have yet.** You cannot sort 1,025 Pokémon by Attack
 without 1,025 detail records. Rather than quietly sorting whatever happened to be on screen — which

@@ -61,7 +61,7 @@ export function PokemonDetail({ pokemon, neighbours, onNavigate }: PokemonDetail
       {/* ------------------------------------------------------------ hero */}
       <header className="type-wash relative px-6 pb-8 pt-10 md:px-10 md:pt-12">
         <div className="mx-auto flex max-w-3xl flex-col items-center gap-6 md:flex-row md:items-end md:gap-10">
-          <div className="grid size-[190px] shrink-0 place-items-center md:size-[224px]">
+          <div className="grid size-47.5 shrink-0 place-items-center md:size-56">
             <PokemonArt
               id={pokemon.id}
               name={pokemon.displayName}
@@ -143,7 +143,7 @@ export function PokemonDetail({ pokemon, neighbours, onNavigate }: PokemonDetail
             {pokemon.abilities.map((ability) => (
               <li
                 key={ability.name}
-                className="inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-line bg-surface px-3 py-2 text-sm font-medium text-ink"
+                className="inline-flex items-center gap-2 rounded-(--radius-control) border border-line bg-surface px-3 py-2 text-sm font-medium text-ink"
               >
                 {ability.displayName}
                 {ability.isHidden && (
@@ -203,7 +203,7 @@ function SectionHeading({
 
 function Fact({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-[var(--radius-control)] border border-line bg-surface px-3.5 py-3">
+    <div className="rounded-(--radius-control) border border-line bg-surface px-3.5 py-3">
       <dt className="text-[11px] font-medium uppercase tracking-wider text-ink-faint">{label}</dt>
       <dd className="tabular mt-1 text-lg font-semibold text-ink">{value}</dd>
       {hint && <dd className="tabular text-xs text-ink-faint">{hint}</dd>}

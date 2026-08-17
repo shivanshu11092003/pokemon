@@ -45,14 +45,14 @@ export function CompareTray() {
             transition={{ type: "spring", stiffness: 320, damping: 32 }}
             className="fixed inset-x-0 bottom-0 z-30 px-3 pb-3 sm:px-4 sm:pb-4"
           >
-            <div className="mx-auto flex max-w-3xl flex-col gap-2 rounded-[var(--radius-card)] border border-line bg-surface/95 p-2.5 shadow-hover backdrop-blur-xl sm:flex-row sm:items-center sm:gap-3 sm:py-2.5 sm:pl-4 sm:pr-3">
+            <div className="mx-auto flex max-w-3xl flex-col gap-2 rounded-card border border-line bg-surface/95 p-2.5 shadow-hover backdrop-blur-xl sm:flex-row sm:items-center sm:gap-3 sm:py-2.5 sm:pl-4 sm:pr-3">
               <span className="hidden text-sm font-medium text-ink-muted sm:block">Compare</span>
 
-              <ul className="flex min-w-0 flex-1 items-center justify-between gap-1.5 overflow-x-auto py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:justify-start sm:gap-2">
+              <ul className="flex min-w-0 flex-1 items-center justify-between gap-1.5 overflow-x-auto py-0.5 scrollbar-none [&::-webkit-scrollbar]:hidden sm:justify-start sm:gap-2">
                 {compare.map((id, position) => {
                   const pokemon = selected.find((entry) => entry.id === id);
                   return (
-                    <div
+                    <li
                       key={id}
                       className="flex min-w-0 flex-1 items-center justify-between gap-1.5 sm:flex-initial"
                     >
@@ -61,14 +61,14 @@ export function CompareTray() {
                           VS
                         </span>
                       )}
-                      <li className="flex min-w-0 flex-1 items-center justify-between gap-1.5 rounded-full bg-canvas-muted py-1 pl-1 pr-2.5 sm:flex-initial sm:pr-2.5">
+                      <div className="flex min-w-0 flex-1 items-center justify-between gap-1.5 rounded-full bg-canvas-muted py-1 pl-1 pr-2.5 sm:flex-initial sm:pr-2.5">
                         <PokemonArt
                           id={id}
                           name={pokemon?.displayName ?? `Pokémon ${id}`}
                           size={28}
                           className="size-6.5 shrink-0 sm:size-7"
                         />
-                        <span className="truncate text-xs font-medium text-ink sm:max-w-[130px] sm:text-[13px]">
+                        <span className="truncate text-xs font-medium text-ink sm:max-w-32.5 sm:text-[13px]">
                           {pokemon?.displayName ?? names[position]}
                         </span>
                         <button
@@ -79,8 +79,8 @@ export function CompareTray() {
                         >
                           <X className="size-3.5" />
                         </button>
-                      </li>
-                    </div>
+                      </div>
+                    </li>
                   );
                 })}
 

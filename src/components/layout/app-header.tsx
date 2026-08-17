@@ -42,7 +42,7 @@ export function AppHeader() {
  */
 function PokeballMark() {
   return (
-    <span className="raised grid size-10 shrink-0 place-items-center rounded-[0.9rem] bg-surface transition-transform duration-300 ease-[var(--ease-out-soft)] group-hover:-rotate-6">
+    <span className="raised grid size-10 shrink-0 place-items-center rounded-[0.9rem] bg-surface transition-transform duration-300 ease-(--ease-out-soft) group-hover:-rotate-6">
       <svg viewBox="0 0 32 32" className="size-7" aria-hidden>
         <title>Pokéball</title>
         <defs>

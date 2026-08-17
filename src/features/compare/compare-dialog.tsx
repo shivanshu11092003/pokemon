@@ -85,13 +85,13 @@ function CompareHeader({ pokemon }: { pokemon: Pokemon }) {
   return (
     <div
       style={typeStyle(pokemon.types[0])}
-      className="type-wash flex flex-col items-center gap-1.5 rounded-[var(--radius-card)] border border-line px-2 py-3.5 sm:gap-2 sm:px-4 sm:py-5"
+      className="type-wash flex flex-col items-center gap-1.5 rounded-card border border-line px-2 py-3.5 sm:gap-2 sm:px-4 sm:py-5"
     >
       <PokemonArt
         id={pokemon.id}
         name={pokemon.displayName}
         size={96}
-        className="size-16 sm:size-[104px]"
+        className="size-16 sm:size-26"
       />
       <span className="tabular text-[11px] font-semibold text-ink-faint sm:text-xs">
         {formatDexNumber(pokemon.id)}

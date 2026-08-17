@@ -59,20 +59,31 @@ export function usePokemonFeed(input: FeedInput): Feed {
 
   // One membership list per selected type, each cached on its own, so re-selecting
   // a type seen before costs zero requests. The filter itself is the union.
+  //
+  // `combine` is load-bearing, not decoration: without it `useQueries` hands back
+  // a freshly built results array on every render, so every memo keyed on it
+  // recomputes — which meant one unrelated re-render (a favourite toggle, say)
+  // re-ran the whole 1,025-entry filter and sort and handed every card a new
+  // `item` object, defeating `memo`. Narrowing to plain data lets React Query
+  // structurally share the result, so the identity below is stable.
   const typeQueries = useQueries({
     queries: types.map((type) => typeMembersOptions(type)),
+    combine: (results) => ({
+      isPending: results.some((result) => result.isPending),
+      lists: results.map((result) => result.data ?? []),
+    }),
   });
 
-  const typesPending = types.length > 0 && typeQueries.some((result) => result.isPending);
+  const typesPending = types.length > 0 && typeQueries.isPending;
 
   const typeNames = useMemo(() => {
-    if (types.length === 0) return null;
+    if (typeQueries.lists.length === 0) return null;
     const names = new Set<string>();
-    for (const result of typeQueries) {
-      for (const name of result.data ?? []) names.add(name);
+    for (const list of typeQueries.lists) {
+      for (const name of list) names.add(name);
     }
     return names;
-  }, [types, typeQueries]);
+  }, [typeQueries]);
 
   /* -------------------------------------------------- candidate selection */
 
@@ -161,21 +172,20 @@ export function usePokemonFeed(input: FeedInput): Feed {
   /* ------------------------------------------------------ detail records */
 
   // Keyed by name, not id: the detail route's param is a name, so sharing one
-  // canonical key means clicking a card opens a modal that is already populated.
-  const detailsById = useQueries({
+  // canonical key means clicking a card opens a page that is already populated.
+  //
+  // Combined into a plain array positionally aligned with `visible`, rather than a
+  // Map: React Query's structural sharing only preserves the identity of plain
+  // objects and arrays, and a fresh Map every render would push a fresh `item`
+  // into every card.
+  const details = useQueries({
     queries: visible.map((entry) => pokemonDetailOptions(entry.name)),
-    combine: (results) => {
-      const map = new Map<number, Pokemon>();
-      for (const result of results) {
-        if (result.data) map.set(result.data.id, result.data);
-      }
-      return map;
-    },
+    combine: (results) => results.map((result) => result.data),
   });
 
   const items = useMemo<FeedItem[]>(
-    () => visible.map((entry) => ({ ...entry, pokemon: detailsById.get(entry.id) })),
-    [visible, detailsById],
+    () => visible.map((entry, position) => ({ ...entry, pokemon: details[position] })),
+    [visible, details],
   );
 
   /* ---------------------------------------------------------- suggestions */
