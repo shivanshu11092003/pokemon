@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 import { AppHeader } from "@/components/layout/app-header";
 import { ThemeProvider } from "@/components/layout/theme-provider";
+import { CompareTray } from "@/features/compare/compare-tray";
 import { parseTheme, THEME_COOKIE, themeClass } from "@/lib/theme";
 import { cn } from "@/lib/utils/cn";
 import "./globals.css";
@@ -80,6 +81,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <Providers>
             <AppHeader />
             {children}
+            <CompareTray />
           </Providers>
         </ThemeProvider>
       </body>

@@ -4,7 +4,6 @@ import { Heart } from "lucide-react";
 import dynamic from "next/dynamic";
 import { EmptyState } from "@/components/states/empty-state";
 import { ErrorState } from "@/components/states/error-state";
-import { CompareTray } from "@/features/compare/compare-tray";
 import { SortSelect } from "@/features/filters/sort-select";
 import { TypeFilterMenu } from "@/features/filters/type-filter-menu";
 import { SearchBar } from "@/features/search/search-bar";
@@ -161,8 +160,6 @@ export function Explorer() {
             : ""}
         </p>
       )}
-
-      <CompareTray />
     </>
   );
 }
