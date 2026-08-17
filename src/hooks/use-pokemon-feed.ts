@@ -2,6 +2,7 @@
 
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { MAX_NATIONAL_DEX_ID } from "@/lib/api/pokemon";
 import { isStatSort, type SortKey, sortIndexEntries } from "@/lib/pokemon/sort";
 import {
@@ -54,6 +55,24 @@ export interface Feed {
 export function usePokemonFeed(input: FeedInput): Feed {
   const { query, types, sort, favoritesOnly, favorites } = input;
   const client = useQueryClient();
+
+  /*
+   * The feed is server-rendered with an empty cache, so the server always paints
+   * a skeleton. The client's *first* render has to paint the same thing, and
+   * "has the index arrived?" is not a safe way to decide that: the query cache is
+   * shared app-wide, and anything mounted outside this page's Suspense boundary
+   * hydrates earlier and can resolve the index before this subtree hydrates. When
+   * that happened the first client render jumped straight to the loaded view while
+   * the server had sent a skeleton — a genuine hydration mismatch, reported
+   * against `StageView` (`main`) landing where the skeleton's `div` was.
+   *
+   * Reporting "pending" until hydration finishes makes that first render
+   * deterministic regardless of what the cache holds. Nothing is lost: the server
+   * showed a skeleton anyway, and the flag flips in the same commit that hydration
+   * completes. On client-side navigations `useHydrated` is already true on mount,
+   * so a warm cache still renders instantly.
+   */
+  const hydrated = useHydrated();
 
   const indexQuery = useQuery(pokemonIndexOptions());
 
@@ -212,7 +231,7 @@ export function usePokemonFeed(input: FeedInput): Feed {
     hasMore: visibleCount < ordered.length,
     remaining: Math.max(ordered.length - visibleCount, 0),
     loadMore,
-    isPending: indexQuery.isPending || typesPending,
+    isPending: !hydrated || indexQuery.isPending || typesPending,
     isError: indexQuery.isError,
     error: indexQuery.error,
     retry,

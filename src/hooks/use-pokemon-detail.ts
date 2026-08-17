@@ -2,6 +2,7 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { pokemonDetailOptions, pokemonIndexOptions } from "@/lib/query/options";
 import type { Pokemon } from "@/types/pokemon";
 
@@ -15,6 +16,11 @@ interface DetailResult {
 }
 
 export function usePokemonDetail(nameOrId: string): DetailResult {
+  // Same reasoning as `usePokemonFeed`: this page server-renders its skeleton, so
+  // the first client render must too, whatever the shared cache holds by then. The
+  // comparison tray fetches detail records by name from the layout — outside this
+  // route's boundary — so it can seed this exact query before the page hydrates.
+  const hydrated = useHydrated();
   const indexQuery = useQuery(pokemonIndexOptions());
   const detailQuery = useQuery(pokemonDetailOptions(nameOrId));
 
@@ -24,7 +30,7 @@ export function usePokemonDetail(nameOrId: string): DetailResult {
 
   return {
     pokemon: detailQuery.data,
-    isPending: detailQuery.isPending,
+    isPending: !hydrated || detailQuery.isPending,
     isError: detailQuery.isError,
     error: detailQuery.error,
     neighbours: {

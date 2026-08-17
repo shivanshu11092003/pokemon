@@ -23,7 +23,16 @@ export function CompareTray() {
   const clearCompare = useUiStore((state) => state.clearCompare);
   const [isOpen, setIsOpen] = useState(false);
 
-  const { data: index } = useQuery(pokemonIndexOptions());
+  const { data: index } = useQuery({
+    ...pokemonIndexOptions(),
+    // The tray only needs the index to turn stored ids into names, so an empty
+    // slate has nothing to look up. Fetching it unconditionally pulled the whole
+    // ~90KB index on every page load — and, because this tray sits in the layout
+    // *outside* the page's Suspense boundary, it hydrated first and resolved that
+    // fetch before the explorer hydrated, which is what made the explorer's first
+    // client render disagree with the server's. See `usePokemonFeed`.
+    enabled: compare.length > 0,
+  });
   const names = compare.map((id) => index?.find((entry) => entry.id === id)?.name ?? String(id));
 
   const selected = useQueries({
